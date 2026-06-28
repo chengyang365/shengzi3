@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>新廊华小 - 三年级华文生字智能学习系统</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { 
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        primaryHover: '#2563eb',
+                        secondary: '#10b981',
+                        darkBg: '#0f172a',
+                        darkCard: '#1e293b'
+                    }
+                } 
+            }
+        }
+    </script>
+    
+    <!-- Hanzi Writer (动态笔顺) -->
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+    
+    <!-- cnchar (拼音、部首、笔顺拆解图) -->
+    <script src="https://cdn.jsdelivr.net/npm/cnchar/cnchar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cnchar-radical/cnchar.radical.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cnchar-draw/cnchar.draw.min.js"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* 全局 UI 字体 */
+        body { 
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 专属楷体：针对生字展示 */
+        .font-kaiti {
+            font-family: '楷体', KaiTi, STKaiti, 'BiauKai', 'Noto Serif SC', serif;
+        }
+
+        .hanzi-box svg { max-width: 100%; height: auto; }
+        
+        /* 美化全局滚动条 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.5); border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background-color: rgba(71, 85, 105, 0.6); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 修复 cnchar 拆解图在移动端的显示问题 */
+        #cncharStaticDraw svg { max-width: 100%; height: auto; }
+
+        /* 页面加载动画 */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 打印用网格背景 */
+        .grid-mizi {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none" stroke="%23f87171" stroke-width="2"/><line x1="0" y1="50" x2="100" y2="50" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/><line x1="50" y1="0" x2="50" y2="100" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/><line x1="0" y1="0" x2="100" y2="100" stroke="%23fee2e2" stroke-width="0.5" stroke-dasharray="3,3"/><line x1="100" y1="0" x2="0" y2="100" stroke="%23fee2e2" stroke-width="0.5" stroke-dasharray="3,3"/></svg>');
+            background-size: 100% 100%;
+        }
+        .grid-tianzi {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none" stroke="%23f87171" stroke-width="2"/><line x1="0" y1="50" x2="100" y2="50" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/><line x1="50" y1="0" x2="50" y2="100" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/></svg>');
+            background-size: 100% 100%;
+        }
+        .grid-blank {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none" stroke="%23f87171" stroke-width="2"/></svg>');
+            background-size: 100% 100%;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-darkBg text-slate-800 dark:text-slate-200 transition-colors duration-300 min-h-screen flex flex-col">
+
+    <!-- 打印专区 -->
+    <div id="printArea" class="hidden"></div>
+
+    <!-- 导航栏 (带新廊华小 Branding) -->
+    <nav class="bg-white/90 dark:bg-darkCard/90 backdrop-blur-md shadow-sm sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="switchTab('wordlist')">
+                <div class="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl group-hover:bg-emerald-100 dark:group-hover:bg-emerald-800/50 transition border border-emerald-100 dark:border-emerald-800/50 flex shrink-0">
+                    <i class="ph-fill ph-graduation-cap text-2xl md:text-3xl text-emerald-600 dark:text-emerald-400"></i>
+                </div>
+                <div class="flex flex-col justify-center">
+                    <span class="text-[9px] md:text-[11px] font-black text-emerald-600 dark:text-emerald-400 tracking-wider uppercase mb-0.5 leading-none">新廊华小 SJK (C) Ladang Grisek</span>
+                    <h1 class="text-sm sm:text-base md:text-lg font-bold tracking-wide leading-none text-slate-800 dark:text-slate-100">
+                        三年级华文生字学习
+                    </h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-1 md:gap-3 shrink-0">
+                <!-- 听写测试按钮移至此处 -->
+                <button onclick="switchTab('dictation')" class="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition text-emerald-500" title="听写测试">
+                    <i class="ph-fill ph-headphones text-2xl"></i>
+                </button>
+                <button onclick="switchTab('favorites')" class="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition text-yellow-500" title="我的生字本">
+                    <i class="ph-fill ph-star text-2xl"></i>
+                    <span id="favCountBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden border border-white dark:border-darkCard">0</span>
+                </button>
+                <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-500 dark:text-yellow-400" title="切换深色模式">
+                    <i id="themeIcon" class="ph-fill ph-moon text-2xl"></i>
+                </button>
+                <button onclick="openModal('settingsModal')" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-500 dark:text-slate-400" title="设置">
+                    <i class="ph-fill ph-gear text-2xl"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主体内容区 (侧边栏 + 右侧主内容) -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-6 md:py-8 flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+        
+        <!-- 左侧：单元目录 Sidebar -->
+        <aside class="w-full lg:w-1/4 xl:w-1/5 shrink-0 flex flex-col gap-4">
+            <!-- 全局拼音自测开关 -->
+            <div class="flex items-center justify-between bg-white dark:bg-darkCard px-4 py-3 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <span class="text-sm font-bold text-slate-600 dark:text-slate-300 select-none">隐藏拼音自测</span>
+                <label class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none bg-slate-300 dark:bg-slate-600 cursor-pointer pinyin-toggle-bg">
+                    <span class="pinyin-toggle-dot inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 shadow-sm translate-x-1"></span>
+                    <input type="checkbox" class="hidden pinyin-checkbox" onchange="toggleGlobalPinyin(this.checked)">
+                </label>
+            </div>
+            
+            <!-- 单元列表树 (手机上横向滑动，电脑上垂直滚动) -->
+            <div id="chapterListContainer" class="flex flex-row lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto no-scrollbar pb-2 lg:pb-0 lg:max-h-[calc(100vh-180px)] w-full">
+                <!-- 目录由 JS 动态生成 -->
+            </div>
+        </aside>
+
+        <!-- 右侧：主要功能视图区 -->
+        <section class="flex-grow w-full min-w-0">
+            
+            <!-- 视图 1：生字列表展示 -->
+            <div id="view-wordlist" class="block fade-in">
+                <!-- 头部操作区 -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white dark:bg-darkCard p-5 md:p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                    <div class="flex flex-col">
+                        <h2 id="currentChapterTitle" class="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-100 mb-1">加载中...</h2>
+                        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">共计 <span id="chapterWordCount" class="font-black text-primary mx-1">0</span> 个生字词</span>
+                    </div>
+                    <div class="flex gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                        <button onclick="printCurrentChapterCopybook()" class="flex-1 sm:flex-auto bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-5 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-2">
+                            <i class="ph-fill ph-printer text-xl"></i> 打印字帖
+                        </button>
+                        <button onclick="startChapterStudy()" class="flex-1 sm:flex-auto bg-primary hover:bg-primaryHover text-white px-5 py-2.5 rounded-xl font-bold shadow-md hover:shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2">
+                            <i class="ph-fill ph-play-circle text-xl"></i> 开始学习
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 生字卡片网格 -->
+                <div id="wordListContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+                    <!-- 词语列表由 JS 生成 -->
+                </div>
+            </div>
+
+            <!-- 视图 2：生字本 -->
+            <div id="view-favorites" class="hidden fade-in">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white dark:bg-darkCard p-5 md:p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                    <div class="flex flex-col">
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-2">
+                            <i class="ph-fill ph-star text-yellow-500"></i> 我的生字本
+                        </h2>
+                        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">已收藏的易错/重点字</span>
+                    </div>
+                    <div class="flex gap-3 w-full sm:w-auto mt-2 sm:mt-0" id="favoritesHeaderActions">
+                        <button id="btnPrintFavorites" onclick="printFavoritesCopybook()" class="flex-1 sm:flex-auto bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-5 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-2 hidden">
+                            <i class="ph-fill ph-printer text-xl"></i> 打印字帖
+                        </button>
+                        <button onclick="startFavoritesStudy()" class="flex-1 sm:flex-auto bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-md hover:shadow-lg shadow-yellow-500/20 transition flex items-center justify-center gap-2">
+                            <i class="ph-fill ph-play-circle text-xl"></i> 复习生字本
+                        </button>
+                    </div>
+                </div>
+
+                <div id="emptyFavoritesMsg" class="hidden text-center py-24 text-slate-400 bg-white dark:bg-darkCard rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                    <div class="bg-slate-100 dark:bg-slate-800 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="ph-fill ph-star text-5xl text-slate-300 dark:text-slate-600"></i>
+                    </div>
+                    <p class="text-lg font-bold text-slate-500">生字本空空如也~</p>
+                    <p class="text-sm mt-2">在学习时点击右上角的星星即可收藏。</p>
+                </div>
+
+                <div id="favoritesContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+                    <!-- 收藏列表由 JS 生成 -->
+                </div>
+            </div>
+
+            <!-- 视图 3：听写测试设置 -->
+            <div id="view-dictation" class="hidden fade-in">
+                <div class="bg-white dark:bg-darkCard rounded-3xl shadow-sm p-8 max-w-2xl mx-auto border border-slate-100 dark:border-slate-800">
+                    <div class="text-center mb-8">
+                        <div class="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="ph-fill ph-pencil-simple text-4xl text-secondary"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-2">听写测试</h2>
+                        <p class="text-slate-500 dark:text-slate-400">准备好纸和笔，考验你的时候到啦！</p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-bold mb-2 text-slate-700 dark:text-slate-300">选择听写范围：</label>
+                            <div class="relative">
+                                <select id="dictationChapterSelect" class="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl p-4 appearance-none outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-medium text-slate-700 dark:text-slate-200">
+                                    <!-- 选项由 JS 生成 -->
+                                </select>
+                                <i class="ph-bold ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-sm font-bold text-slate-700 dark:text-slate-300">每个词的间隔时间</label>
+                                <span class="bg-blue-100 text-primary dark:bg-blue-900/50 px-3 py-1 rounded-full text-sm font-bold"><span id="dictationIntervalDisplay2">5</span> 秒</span>
+                            </div>
+                            <input type="range" id="dictationIntervalInput2" min="2" max="15" value="5" class="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-primary" oninput="syncDictationInterval(this.value)">
+                            <div class="flex justify-between text-xs text-slate-400 mt-2">
+                                <span>快 (2秒)</span>
+                                <span>慢 (15秒)</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-6 border-t border-slate-100 dark:border-slate-800">
+                            <button onclick="startDictationTest()" class="w-full bg-secondary hover:bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-xl transition-all transform hover:-translate-y-1 text-lg flex items-center justify-center gap-2">
+                                <i class="ph-fill ph-play-circle text-2xl"></i> 开始听写挑战
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 视图 4：听写进行中 -->
+            <div id="view-dictation-active" class="hidden text-center max-w-xl mx-auto py-10 fade-in">
+                <h2 class="text-3xl font-black mb-2 text-slate-800 dark:text-white" id="dictationActiveTitle">听写进行中</h2>
+                <div class="inline-flex items-center justify-center px-4 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mb-10">
+                    <span class="text-slate-500 dark:text-slate-400 font-bold tracking-widest" id="dictationProgressText">第 1 / 10 个词</span>
+                </div>
+
+                <div class="bg-white dark:bg-darkCard rounded-full shadow-lg w-64 h-64 mx-auto mb-10 flex items-center justify-center relative border-[6px] border-slate-50 dark:border-slate-800 group">
+                    <div class="absolute inset-0 rounded-full border-4 border-primary/20 animate-ping"></div>
+                    <button onclick="playCurrentDictationWord()" class="absolute inset-0 w-full h-full flex flex-col items-center justify-center rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 transition z-10 cursor-pointer">
+                        <i class="ph-fill ph-speaker-high text-7xl text-primary group-hover:scale-110 transition-transform duration-300 pointer-events-none"></i>
+                        <p class="mt-2 text-slate-400 font-bold text-sm pointer-events-none">点击重读</p>
+                    </button>
+                </div>
+
+                <div class="w-full bg-slate-200 rounded-full h-3 mb-10 dark:bg-slate-700 overflow-hidden shadow-inner">
+                    <div id="dictationProgressBar" class="bg-gradient-to-r from-primary to-blue-400 h-full rounded-full transition-all duration-300" style="width: 10%"></div>
+                </div>
+
+                <div class="flex justify-center gap-4">
+                    <button onclick="prevDictationWord()" class="px-6 py-3 bg-white dark:bg-darkCard shadow-sm border border-slate-200 dark:border-slate-700 font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition text-slate-600 dark:text-slate-300">上一个</button>
+                    <button onclick="endDictationTest()" class="px-8 py-3 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 font-bold rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 transition">提前结束</button>
+                    <button onclick="nextDictationWord()" class="px-6 py-3 bg-white dark:bg-darkCard shadow-sm border border-slate-200 dark:border-slate-700 font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition text-slate-600 dark:text-slate-300">下一个</button>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- 页脚 Branding -->
+    <footer class="mt-auto py-6 text-center text-slate-400 dark:text-slate-500 text-xs font-semibold">
+        &copy; 2026 新廊华小 SJK(C) Ladang Grisek · 张政扬师与三年级华文组 荣誉出品
+    </footer>
+
+    <!-- 弹窗：生字学习卡片 (完全自适应版：电脑横向双排展示) -->
+    <div id="studyModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 sm:p-6 transition-opacity opacity-0">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeModal('studyModal')"></div>
+        
+        <!-- 【响应式宽排版】桌面端加宽以支持多列布局 -->
+        <div class="bg-white dark:bg-darkCard rounded-3xl shadow-2xl w-full max-w-[500px] lg:max-w-4xl overflow-hidden transform scale-95 transition-all duration-300 flex flex-col max-h-[95vh] relative z-10">
+            
+            <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-darkCard z-20 shrink-0">
+                <div class="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full text-sm text-slate-500 dark:text-slate-400 font-bold tracking-widest" id="studyModalProgress">1 / 10</div>
+                <div class="flex gap-2">
+                    <button onclick="playCurrentWordAudio()" class="p-2.5 rounded-full hover:bg-blue-50 dark:hover:bg-slate-800 transition group cursor-pointer" title="朗读发音">
+                        <i class="ph-fill ph-speaker-high text-2xl text-primary group-hover:scale-110 transition-transform pointer-events-none"></i>
+                    </button>
+                    <button onclick="toggleFavoriteCurrent()" id="btnFavorite" class="p-2.5 rounded-full hover:bg-yellow-50 dark:hover:bg-slate-800 transition group cursor-pointer" title="收藏">
+                        <i class="ph ph-star text-2xl group-hover:scale-110 transition-transform pointer-events-none" id="iconFavorite"></i>
+                    </button>
+                    <button onclick="closeModal('studyModal')" class="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-500 cursor-pointer">
+                        <i class="ph-bold ph-x text-2xl pointer-events-none"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body Area (支持桌面双栏) -->
+            <div class="p-5 sm:p-6 overflow-y-auto w-full flex-grow bg-white dark:bg-darkCard relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 w-full pb-4">
+
+                    <!-- 左侧大字区 (在电脑上居左占5列，在手机上正常流排布) -->
+                    <div class="lg:col-span-5 flex flex-col items-center justify-start border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-slate-800 pb-8 lg:pb-0 lg:pr-6">
+                        
+                        <!-- 核心字区、拼音、部首笔画 (垂直精准排布) -->
+                        <div id="studyWordContainer" class="flex flex-wrap justify-center gap-4 md:gap-6 w-full mt-2 mb-4">
+                            <!-- JS 动态注入单字+拼音+部首的组合块 -->
+                        </div>
+
+                        <!-- 解释区：马来文意思 (紧凑连贯排列，无需滑动即可看全) -->
+                        <div class="w-full flex items-center justify-center mb-4">
+                            <div id="studyMeaningContainer" class="w-full">
+                                <!-- 隐藏按钮 / 释义 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧详情区 (在电脑上居右占7列) -->
+                    <div class="lg:col-span-7 flex flex-col justify-start space-y-6">
+
+                        <!-- 例句框 -->
+                        <div class="w-full bg-indigo-50 dark:bg-indigo-900/20 p-5 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 shadow-sm text-left block mt-0 lg:mt-2">
+                            <span class="text-sm font-bold text-indigo-500 dark:text-indigo-400 mb-2 flex items-center gap-1.5">
+                                <i class="ph-fill ph-chat-text text-lg"></i> 例句 Contoh Ayat
+                            </span>
+                            <div id="studySentence" class="text-slate-700 dark:text-slate-200 text-[1.1rem] md:text-lg leading-relaxed font-medium mt-1">
+                                这是例句。
+                            </div>
+                        </div>
+
+                        <!-- 动态笔顺动画与手写 (Hanzi Writer) -->
+                        <div class="w-full">
+                            <div class="flex justify-between items-center mb-3 px-1">
+                                <span class="text-sm font-bold text-slate-500 flex items-center gap-1.5">
+                                    <i class="ph-fill ph-pencil-line text-lg"></i> 笔顺与手写
+                                </span>
+                                <div class="flex gap-2">
+                                    <button onclick="animateAllStrokes()" class="text-xs font-bold bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition shadow-sm active:scale-95 cursor-pointer">自动演示</button>
+                                    <button onclick="quizAllStrokes()" class="text-xs font-bold bg-secondary text-white px-3 py-1.5 rounded-lg hover:bg-emerald-600 transition shadow-sm active:scale-95 cursor-pointer shadow-emerald-500/30">手写练习</button>
+                                </div>
+                            </div>
+                            <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-700 shadow-inner">
+                                <div id="strokeContainer" class="flex flex-wrap justify-center gap-3 min-h-[100px]">
+                                </div>
+                                <div id="drawHint" class="text-center text-emerald-500 dark:text-emerald-400 text-xs font-bold mt-4 hidden animate-pulse">
+                                    ✨ 请直接在上方格子内，用手指或鼠标按笔顺写字
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 静态笔顺拆解图 (cnchar-draw) -->
+                        <div class="w-full">
+                            <span class="text-sm font-bold text-slate-500 mb-3 px-1 flex items-center gap-1.5">
+                                <i class="ph-fill ph-squares-four text-lg"></i> 静态笔画图
+                            </span>
+                            <div id="cncharStaticDraw" class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm overflow-x-auto whitespace-nowrap flex justify-start font-kaiti">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="relative z-[60] p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-darkCard flex justify-between gap-3 shrink-0">
+                <button onclick="prevStudyWord()" id="btnPrevWord" class="relative z-[70] flex-1 py-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition flex justify-center items-center gap-2 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="ph-bold ph-caret-left group-hover:-translate-x-1 transition-transform pointer-events-none"></i> 上一个
+                </button>
+                <button onclick="nextStudyWord()" id="btnNextWord" class="relative z-[70] flex-1 py-3.5 bg-primary text-white rounded-xl shadow-lg shadow-blue-500/30 font-bold hover:bg-primaryHover transition flex justify-center items-center gap-2 group cursor-pointer">
+                    下一个 <i class="ph-bold ph-caret-right group-hover:translate-x-1 transition-transform pointer-events-none"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 高级字帖排版设置弹窗 -->
+    <div id="printOptionsModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="closeModal('printOptionsModal')"></div>
+        <div class="bg-white dark:bg-darkCard rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-all duration-300 relative z-10 border border-slate-100 dark:border-slate-800 flex flex-col">
+            <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+                <h3 class="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
+                    <i class="ph-fill ph-printer text-secondary text-2xl"></i> 
+                    高级字帖排版
+                </h3>
+                <button onclick="closeModal('printOptionsModal')" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition text-slate-500 cursor-pointer">
+                    <i class="ph-bold ph-x text-xl pointer-events-none"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 text-slate-700 dark:text-slate-300 space-y-5 text-sm md:text-base max-h-[70vh] overflow-y-auto no-scrollbar">
+                <div>
+                    <label class="block font-bold mb-2 text-slate-700 dark:text-slate-200">字帖大标题</label>
+                    <input type="text" id="printTitle" placeholder="例如：三年级第十三单元字帖" class="w-full p-3 border-2 border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10 transition-all font-medium">
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-2 text-slate-700 dark:text-slate-200">网格样式</label>
+                    <div class="relative">
+                        <select id="printGridType" class="w-full p-3 border-2 border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10 appearance-none font-medium cursor-pointer">
+                            <option value="tianzi">田字格 (Tianzi)</option>
+                            <option value="mizi" selected>米字格 (Mizi)</option>
+                            <option value="blank">空白方格 (Blank)</option>
+                        </select>
+                        <i class="ph-bold ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block font-bold mb-2 text-slate-700 dark:text-slate-200">生字练习行数 (行)</label>
+                    <input type="number" id="printRowsCount" value="1" min="1" max="10" class="w-full p-3 border-2 border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10 transition-all font-medium">
+                    <span class="text-xs text-slate-400 mt-1.5 block">推荐 1 ~ 3 行以达到最美观的 A4 纸排版体验。</span>
+                </div>
+                
+                <div>
+                    <label class="block font-bold mb-2 text-slate-700 dark:text-slate-200">辅助选项</label>
+                    <div class="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                        <label class="flex items-center gap-2.5 cursor-pointer group">
+                            <input type="checkbox" id="printShowHeader" checked class="w-4 h-4 text-secondary rounded border-slate-300 dark:border-slate-700 focus:ring-secondary accent-secondary cursor-pointer">
+                            <span class="font-medium text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-slate-100 transition-colors">显示学生信息栏 (姓名/班级/日期)</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 cursor-pointer group">
+                            <input type="checkbox" id="printShowPinyin" checked class="w-4 h-4 text-secondary rounded border-slate-300 dark:border-slate-700 focus:ring-secondary accent-secondary cursor-pointer">
+                            <span class="font-medium text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-slate-100 transition-colors">显示汉语拼音 (仅首行)</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 cursor-pointer group">
+                            <input type="checkbox" id="printShowMeaning" checked class="w-4 h-4 text-secondary rounded border-slate-300 dark:border-slate-700 focus:ring-secondary accent-secondary cursor-pointer">
+                            <span class="font-medium text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-slate-100 transition-colors">显示马来文释义 Maksud</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 cursor-pointer group">
+                            <input type="checkbox" id="printTraceFirstRow" checked class="w-4 h-4 text-secondary rounded border-slate-300 dark:border-slate-700 focus:ring-secondary accent-secondary cursor-pointer">
+                            <span class="font-medium text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-slate-100 transition-colors">首行生成浅色描红字</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button onclick="executePrintSheet()" class="w-full bg-secondary hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="ph-bold ph-printer text-xl pointer-events-none"></i>
+                        确认生成并打印
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：设置 -->
+    <div id="settingsModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="absolute inset-0 bg-slate-900/60" onclick="closeModal('settingsModal')"></div>
+        <div class="bg-white dark:bg-darkCard rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-all duration-300 relative z-10">
+            <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+                <h3 class="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2"><i class="ph-fill ph-gear text-primary"></i> 系统设置</h3>
+                <button onclick="closeModal('settingsModal')" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition text-slate-500 cursor-pointer">
+                    <i class="ph-bold ph-x text-xl pointer-events-none"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <!-- 语音语速 -->
+                <div class="mb-8">
+                    <label class="block text-sm font-bold mb-3 text-slate-700 dark:text-slate-300">
+                        朗读语速：<span id="speedValDisplay" class="text-primary mx-1">1.0</span>x
+                    </label>
+                    <input type="range" id="speechRateInput" min="0.5" max="1.5" step="0.1" value="1.0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-primary" oninput="document.getElementById('speedValDisplay').textContent=this.value; updateSettings();">
+                    <div class="flex justify-between text-xs text-slate-400 mt-2">
+                        <span>慢</span><span>正常</span><span>快</span>
+                    </div>
+                </div>
+                <!-- 听写间隔 -->
+                <div class="mb-8">
+                    <label class="block text-sm font-bold mb-3 text-slate-700 dark:text-slate-300">
+                        听写默认间隔：<span id="intervalValDisplay" class="text-primary mx-1">5</span>秒
+                    </label>
+                    <input type="range" id="dictationIntervalInput" min="2" max="15" step="1" value="5" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-primary" oninput="document.getElementById('intervalValDisplay').textContent=this.value; syncDictationInterval(this.value);">
+                </div>
+                <!-- 数据清除 -->
+                <div class="border-t border-slate-100 dark:border-slate-800 pt-6">
+                    <button onclick="clearAllData()" class="w-full py-3 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 transition font-bold text-sm flex justify-center items-center gap-2 cursor-pointer">
+                        <i class="ph-bold ph-trash pointer-events-none"></i> 清除所有学习记录和收藏
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 核心 JavaScript 逻辑 -->
+    <script>
+        // ==========================================
+        // 1. 三年级全册生字数据 (完整单元 1 - 20)
+        // ==========================================
+        const grade3Data = {
+          "第一单元 上学的路": [
+            { word: "巨大", pinyin: "jù dà", meaning: "besar / raksasa", sentence: "大象有着巨大的身体。" },
+            { word: "橙子", pinyin: "chéng zi", meaning: "oren", sentence: "妹妹最喜欢吃酸酸甜甜的橙子。" },
+            { word: "鲜艳", pinyin: "xiān yàn", meaning: "cerah / berseri", sentence: "花园里开满了色彩鲜艳的花朵。" },
+            { word: "尽心", pinyin: "jìn xīn", meaning: "dengan sepenuh hati", sentence: "老师尽心尽力地教导我们。" },
+            { word: "开启", pinyin: "kāi qǐ", meaning: "membuka", sentence: "阅读能为我们开启知识的大门。" },
+            { word: "钥匙", pinyin: "yào shi", meaning: "kunci", sentence: "爸爸用钥匙把大门打开了。" },
+            { word: "解开", pinyin: "jiě kāi", meaning: "membuka ikatan / merungkai", sentence: "我终于解开了这道数学题的答案。" },
+            { word: "疑问", pinyin: "yí wèn", meaning: "keraguan / soalan", sentence: "如果你有任何疑问，请举手发问。" },
+            { word: "克服", pinyin: "kè fú", meaning: "mengatasi", sentence: "只要有恒心，我们就能克服所有困难。" },
+            { word: "系", pinyin: "jì", meaning: "mengikat", sentence: "出门前，一定要把鞋带系好。" }
+          ],
+          "第二单元 魔豆传心意": [
+            { word: "罐头", pinyin: "guàn tou", meaning: "tin (makanan)", sentence: "妈妈去超市买了几罐沙丁鱼罐头。" },
+            { word: "良好", pinyin: "liáng hǎo", meaning: "baik", sentence: "我们要从小养成良好的阅读习惯。" },
+            { word: "隔天", pinyin: "gé tiān", meaning: "keesokan harinya", sentence: "我昨天刚买的书，隔天就看完了。" },
+            { word: "冒出", pinyin: "mào chū", meaning: "muncul / keluar", sentence: "春天到了，泥土里冒出了绿色的嫩芽。" },
+            { word: "戴", pinyin: "dài", meaning: "memakai (aksesori)", sentence: "外婆戴着一副老花眼镜看报纸。" },
+            { word: "帽子", pinyin: "mào zi", meaning: "topi", sentence: "天气很热，出门记得戴上帽子。" },
+            { word: "玩偶", pinyin: "wán ǒu", meaning: "anak patung", sentence: "这是我最喜欢的毛绒玩偶。" },
+            { word: "介意", pinyin: "jiè yì", meaning: "keberatan / kisah", sentence: "我只是开个玩笑，请你不要介意。" },
+            { word: "与众不同", pinyin: "yǔ zhòng bù tóng", meaning: "luar biasa / berbeza", sentence: "他的画作充满创意，看起来与众不同。" },
+            { word: "详细", pinyin: "xiáng xì", meaning: "terperinci", sentence: "请你详细地说明事情的经过。" }
+          ],
+          "第三单元 鸟儿筑巢": [
+            { word: "衔", pinyin: "xián", meaning: "menggigit di mulut", sentence: "小鸟嘴里衔着树枝，准备去筑巢。" },
+            { word: "承受", pinyin: "chéng shòu", meaning: "menanggung", sentence: "这座桥非常坚固，能承受很大的重量。" },
+            { word: "羡慕", pinyin: "xiàn mù", meaning: "iri hati / kagum", sentence: "我很羡慕同学有一辆新自行车。" },
+            { word: "遮蔽", pinyin: "zhē bì", meaning: "menutupi / berlindung", sentence: "茂密的树叶为我们遮蔽了猛烈的阳光。" },
+            { word: "猛烈", pinyin: "měng liè", meaning: "dahsyat / kuat", sentence: "台风刮得很猛烈，把树都吹倒了。" },
+            { word: "不禁", pinyin: "bù jīn", meaning: "tidak dapat menahan", sentence: "听到这个笑话，大家都不禁大笑起来。" },
+            { word: "刮风", pinyin: "guā fēng", meaning: "angin bertiup", sentence: "外面正在刮风下雨，大家尽量不要出门。" },
+            { word: "缺少", pinyin: "quē shǎo", meaning: "kekurangan", sentence: "这道菜缺少了一点盐，味道不够好。" },
+            { word: "坚固", pinyin: "jiān gù", meaning: "kukuh", sentence: "这栋房子建得非常坚固，不怕风吹雨打。" },
+            { word: "避开", pinyin: "bì kāi", meaning: "mengelak", sentence: "我们应该避开危险的建筑工地。" }
+          ],
+          "第四单元 爸爸的大手": [
+            { word: "废纸", pinyin: "fèi zhǐ", meaning: "kertas terpakai / buangan", sentence: "请把废纸丢进回收箱里。" },
+            { word: "一眨眼", pinyin: "yī zhǎ yǎn", meaning: "sekelip mata", sentence: "一眨眼，小猫就不见了踪影。" },
+            { word: "驴子", pinyin: "lǘ zi", meaning: "keldai", sentence: "农夫牵着一匹驴子在田里干活。" },
+            { word: "蚊子", pinyin: "wén zi", meaning: "nyamuk", sentence: "昨晚有蚊子飞进房间，吵得我睡不着。" },
+            { word: "疲倦", pinyin: "pí juàn", meaning: "letih", sentence: "工作了一整天，爸爸感到非常疲倦。" },
+            { word: "肩膀", pinyin: "jiān bǎng", meaning: "bahu", sentence: "弟弟靠在妈妈的肩膀上睡着了。" },
+            { word: "扇子", pinyin: "shān zi", meaning: "kipas tangan", sentence: "奶奶用扇子轻轻地为我扇风。" },
+            { word: "炎热", pinyin: "yán rè", meaning: "sangat panas", sentence: "在炎热的下午，喝一杯冰水最舒服了。" },
+            { word: "损坏", pinyin: "sǔn huài", meaning: "rosak", sentence: "如果在图书馆借的书损坏了，是需要赔偿的。" },
+            { word: "修理", pinyin: "xiū lǐ", meaning: "membaiki", sentence: "工人们正在修理坏掉的红绿灯。" }
+          ],
+          "第五单元 飞跃的想象": [
+            { word: "茂密", pinyin: "mào mì", meaning: "lebat (pokok/rambut)", sentence: "我们在茂密的森林里迷路了。" },
+            { word: "题目", pinyin: "tí mù", meaning: "tajuk / soalan", sentence: "这道数学题目的难度很高。" },
+            { word: "甚至", pinyin: "shèn zhì", meaning: "malah / sehinggakan", sentence: "他太累了，甚至连饭都没吃就睡着了。" },
+            { word: "默默", pinyin: "mò mò", meaning: "secara diam-diam", sentence: "清洁工人默默地为城市打扫卫生。" },
+            { word: "盲人", pinyin: "máng rén", meaning: "orang buta", sentence: "我们要主动帮助盲人过马路。" },
+            { word: "按照", pinyin: "àn zhào", meaning: "mengikut", sentence: "请按照说明书的步骤组装玩具。" },
+            { word: "规定", pinyin: "guī dìng", meaning: "peraturan / menetapkan", sentence: "学校规定学生必须穿整齐的校服。" },
+            { word: "坚强", pinyin: "jiān qiáng", meaning: "kuat / tabah", sentence: "遇到困难时，我们必须保持坚强。" },
+            { word: "丝带", pinyin: "sī dài", meaning: "reben", sentence: "妹妹的头上绑着一条粉红色的丝带。" },
+            { word: "骗", pinyin: "piàn", meaning: "menipu", sentence: "我们要做诚实的孩子，绝不骗人。" }
+          ],
+          "第六单元 脑筋转一转": [
+            { word: "楚国", pinyin: "chǔ guó", meaning: "Negara Chu (Zaman Purba)", sentence: "楚国是中国古代的一个国家。" },
+            { word: "购买", pinyin: "gòu mǎi", meaning: "membeli", sentence: "妈妈去商场购买了一些日常用品。" },
+            { word: "夸口", pinyin: "kuā kǒu", meaning: "memuji diri / bercakap besar", sentence: "他常常夸口说自己什么都会。" },
+            { word: "锋利", pinyin: "fēng lì", meaning: "tajam", sentence: "这把刀非常锋利，使用时要小心。" },
+            { word: "刺", pinyin: "cì", meaning: "menikam / duri", sentence: "玫瑰花茎上长满了尖锐的刺。" },
+            { word: "坚固", pinyin: "jiān gù", meaning: "kukuh", sentence: "这栋大楼非常坚固，能抵抗强风。" },
+            { word: "哑口无言", pinyin: "yǎ kǒu wú yán", meaning: "terdiam (tidak dapat berkata-kata)", sentence: "面对铁一般的证据，小偷顿时哑口无言。" },
+            { word: "随便", pinyin: "suí biàn", meaning: "sesuka hati / sebarangan", sentence: "我们不可以随便拿别人的东西。" },
+            { word: "弄错", pinyin: "nòng cuò", meaning: "salah buat / tersilap", sentence: "对不起，我弄错了你的名字。" },
+            { word: "永远", pinyin: "yǒng yuǎn", meaning: "selama-lamanya", sentence: "我会永远记住老师的教诲。" }
+          ],
+          "第七单元 自得其乐": [
+            { word: "朗读", pinyin: "lǎng dú", meaning: "membaca dengan kuat", sentence: "清晨，同学们在课室里大声朗读课文。" },
+            { word: "挑选", pinyin: "tiāo xuǎn", meaning: "memilih", sentence: "妈妈在菜市场挑选最新鲜的水果。" },
+            { word: "熟悉", pinyin: "shú xī", meaning: "biasa dengan / kenal", sentence: "我对这条回家的路非常熟悉。" },
+            { word: "方式", pinyin: "fāng shì", meaning: "cara / kaedah", sentence: "每个人都有自己喜欢的学习方式。" },
+            { word: "表达", pinyin: "biǎo dá", meaning: "menyatakan / meluahkan", sentence: "我写了一张卡片来表达对母亲的爱。" },
+            { word: "充满", pinyin: "chōng mǎn", meaning: "penuh dengan", sentence: "游乐园里充满了孩子们的欢笑声。" },
+            { word: "思考", pinyin: "sī kǎo", meaning: "berfikir", sentence: "遇到难题时，我们要冷静思考。" },
+            { word: "曾经", pinyin: "céng jīng", meaning: "pernah", sentence: "我曾经参加过全校演讲比赛。" },
+            { word: "绝对", pinyin: "jué duì", meaning: "pasti / mutlak", sentence: "这件事我绝对没有告诉别人。" },
+            { word: "承认", pinyin: "chéng rèn", meaning: "mengakui", sentence: "做错事后，应该勇敢承认并道歉。" }
+          ],
+          "第八单元 科技发展真迅速": [
+            { word: "科技", pinyin: "kē jì", meaning: "sains dan teknologi", sentence: "现代科技的发展给生活带来了很多便利。" },
+            { word: "迅速", pinyin: "xùn sù", meaning: "pantas", sentence: "消防车迅速赶到火灾现场进行救援。" },
+            { word: "替代", pinyin: "tì dài", meaning: "menggantikan", sentence: "智能手机几乎替代了传统相机的功能。" },
+            { word: "确实", pinyin: "què shí", meaning: "memang / pasti", sentence: "这个消息确实让人感到非常惊讶。" },
+            { word: "改善", pinyin: "gǎi shàn", meaning: "memperbaiki", sentence: "通过锻炼，他的身体状况得到了改善。" },
+            { word: "交通", pinyin: "jiāo tōng", meaning: "pengangkutan / lalu lintas", sentence: "吉隆坡的交通非常繁忙。" },
+            { word: "距离", pinyin: "jù lí", meaning: "jarak", sentence: "我家距离学校只有十分钟的路程。" },
+            { word: "缩短", pinyin: "suō duǎn", meaning: "memendekkan", sentence: "飞机的发明缩短了城市之间的距离。" },
+            { word: "无论", pinyin: "wú lùn", meaning: "tidak kira", sentence: "无论天气多坏，邮递员都会准时送信。" },
+            { word: "创造", pinyin: "chuàng zào", meaning: "mencipta", sentence: "人类用智慧创造了许多伟大的发明。" }
+          ],
+          "第九单元 创造历史的人": [
+            { word: "历史", pinyin: "lì shǐ", meaning: "sejarah", sentence: "马六甲是一座充满历史故事的古城。" },
+            { word: "皇帝", pinyin: "huáng dì", meaning: "maharaja", sentence: "古代的皇帝住在富丽堂皇的皇宫里。" },
+            { word: "统一", pinyin: "tǒng yī", meaning: "menyatukan", sentence: "秦始皇成功统一了中国。" },
+            { word: "贡献", pinyin: "gòng xiàn", meaning: "sumbangan", sentence: "科学家们为人类社会做出了巨大的贡献。" },
+            { word: "伟大", pinyin: "wěi dà", meaning: "agung", sentence: "母亲的爱是世界上最伟大的情感。" },
+            { word: "建筑", pinyin: "jiàn zhù", meaning: "bangunan / pembinaan", sentence: "这座建筑的设计非常独特。" },
+            { word: "宫殿", pinyin: "gōng diàn", meaning: "istana", sentence: "我们在博物馆里看到了古代宫殿的模型。" },
+            { word: "雄伟", pinyin: "xióng wěi", meaning: "megah", sentence: "长城是世界上最雄伟的建筑之一。" },
+            { word: "智慧", pinyin: "zhì huì", meaning: "kebijaksanaan", sentence: "这本书充满了古人的生活智慧。" },
+            { word: "赞叹", pinyin: "zàn tàn", meaning: "kagum / memuji", sentence: "精彩的魔术表演让观众赞叹不已。" }
+          ],
+          "第十单元 美丽的传说": [
+            { word: "传说", pinyin: "chuán shuō", meaning: "legenda", sentence: "关于这座山，有一个非常古老的传说。" },
+            { word: "英雄", pinyin: "yīng xióng", meaning: "wira", sentence: "保卫国家的士兵是我们心目中的英雄。" },
+            { word: "射", pinyin: "shè", meaning: "memanah / menembak", sentence: "后羿用力射下了天空中的九个太阳。" },
+            { word: "箭", pinyin: "jiàn", meaning: "anak panah", sentence: "猎人背着弓箭走进了森林。" },
+            { word: "妻子", pinyin: "qī zi", meaning: "isteri", sentence: "嫦娥是后羿的妻子。" },
+            { word: "仙药", pinyin: "xiān yào", meaning: "ubat dewa", sentence: "传说吃了仙药就可以长生不老。" },
+            { word: "偷", pinyin: "tōu", meaning: "mencuri", sentence: "小狗趁我们不注意，偷吃了桌上的肉。" },
+            { word: "飘", pinyin: "piāo", meaning: "terapung / melayang", sentence: "五颜六色的气球在天空中飘荡。" },
+            { word: "仙女", pinyin: "xiān nǚ", meaning: "bidadari", sentence: "故事里的仙女长得非常美丽。" },
+            { word: "永远", pinyin: "yǒng yuǎn", meaning: "selama-lamanya", sentence: "童年的美好记忆将永远留在我心中。" }
+          ],
+          "第十一单元 语文的魅力": [
+            { word: "语文", pinyin: "yǔ wén", meaning: "bahasa", sentence: "我们要用心学习华文这门优美的语文。" },
+            { word: "魅力", pinyin: "mèi lì", meaning: "daya tarikan", sentence: "这场传统舞蹈表演充满了艺术魅力。" },
+            { word: "丰富", pinyin: "fēng fù", meaning: "kaya / banyak", sentence: "多看书可以丰富我们的课外知识。" },
+            { word: "包含", pinyin: "bāo hán", meaning: "mengandungi", sentence: "这首诗包含了诗人对家乡的思念。" },
+            { word: "意义", pinyin: "yì yì", meaning: "makna", sentence: "参加义工活动是一件非常有意义的事。" },
+            { word: "优美", pinyin: "yōu měi", meaning: "indah", sentence: "这首歌曲的旋律非常优美动听。" },
+            { word: "词汇", pinyin: "cí huì", meaning: "kosa kata", sentence: "通过阅读，我认识了许多新的词汇。" },
+            { word: "掌握", pinyin: "zhǎng wò", meaning: "menguasai", sentence: "多练习才能真正掌握一门语言。" },
+            { word: "沟通", pinyin: "gōu tōng", meaning: "berkomunikasi", sentence: "良好的沟通能减少朋友之间的误会。" },
+            { word: "乐趣", pinyin: "lè qù", meaning: "keseronokan", sentence: "在学习中寻找乐趣，会让你更加进步。" }
+          ],
+          "第十二单元 传统文化是瑰宝": [
+            { word: "传统", pinyin: "chuán tǒng", meaning: "tradisional", sentence: "旗袍是中国女性的传统服装。" },
+            { word: "文化", pinyin: "wén huà", meaning: "budaya", sentence: "马来西亚是一个多元文化的国家。" },
+            { word: "瑰宝", pinyin: "guī bǎo", meaning: "harta karun", sentence: "汉字是中华文化的瑰宝。" },
+            { word: "庆祝", pinyin: "qìng zhù", meaning: "meraikan", sentence: "我们全家一起庆祝爷爷的八十岁生日。" },
+            { word: "节日", pinyin: "jié rì", meaning: "perayaan", sentence: "中秋节是一个传统的华人节日。" },
+            { word: "习俗", pinyin: "xí sú", meaning: "adat resam", sentence: "新年大扫除是华人过年的习俗之一。" },
+            { word: "团聚", pinyin: "tuán jù", meaning: "berkumpul", sentence: "中秋节是家人团聚赏月的好日子。" },
+            { word: "拜年", pinyin: "bài nián", meaning: "melawat pada tahun baru", sentence: "初一早上，我们去亲戚家拜年。" },
+            { word: "祝福", pinyin: "zhù fú", meaning: "berkat / ucapan", sentence: "朋友们纷纷送上生日祝福。" },
+            { word: "传承", pinyin: "chuán chéng", meaning: "mewarisi", sentence: "我们要努力传承优秀的中华文化。" }
+          ],
+          "第十三单元 汉字真有趣": [
+            { word: "凡是", pinyin: "fán shì", meaning: "semua / tiap-tiap", sentence: "凡是好学生都应该按时完成功课。" }, 
+            { word: "书签", pinyin: "shū qiān", meaning: "penanda buku", sentence: "我把精美的书签夹在书本里。" }, 
+            { word: "记录", pinyin: "jì lù", meaning: "mencatat / rekod", sentence: "老师把我们的考试成绩记录在簿子里。" }, 
+            { word: "抛", pinyin: "pāo", meaning: "membaling / mencampak", sentence: "哥哥把皮球高高地抛向天空。" }, 
+            { word: "扁", pinyin: "biǎn", meaning: "leper / kemik", sentence: "这个皮球没气了，变得扁扁的。" },
+            { word: "禾苗", pinyin: "hé miáo", meaning: "anak benih padi", sentence: "农夫在田里辛勤地照顾绿油油的禾苗。" }, 
+            { word: "初", pinyin: "chū", meaning: "awal / permulaan", sentence: "年初的时候，我们一家人去旅行。" }, 
+            { word: "送爽", pinyin: "sòng shuǎng", meaning: "membawa kesegaran", sentence: "秋风送爽，正是去郊游的好时候。" }, 
+            { word: "北斗七星", pinyin: "běi dǒu qī xīng", meaning: "Buruj Biduk", sentence: "晚上，我们在天空中寻找北斗七星。" }
+          ],
+          "第十四单元 读故事，学成语": [
+            { word: "贼", pinyin: "zéi", meaning: "pencuri", sentence: "警察很快就把那个做坏事的贼抓住了。" }, 
+            { word: "贵重", pinyin: "guì zhòng", meaning: "berharga", sentence: "这是一个非常贵重的花瓶，你要小心拿。" }, 
+            { word: "贪心", pinyin: "tān xīn", meaning: "tamak", sentence: "那个贪心的人为了钱，竟然连朋友都骗。" }, 
+            { word: "喘口气", pinyin: "chuǎn kǒu qì", meaning: "berehat sebentar / menarik nafas", sentence: "我们跑了很久，停下来喘口气吧。" }, 
+            { word: "塞住", pinyin: "sāi zhù", meaning: "menutup / menyumbat", sentence: "他用棉花把耳朵塞住，不想听外面的吵闹声。" },
+            { word: "傻事", pinyin: "shǎ shì", meaning: "perkara bodoh", sentence: "掩耳盗铃是一件非常好笑的傻事。" }, 
+            { word: "犯", pinyin: "fàn", meaning: "melakukan kesalahan", sentence: "既然犯了错，就应该勇敢承认并改过。" }
+          ],
+          "第十五单元 生活处处有惊喜": [
+            { word: "周末", pinyin: "zhōu mò", meaning: "hujung minggu", sentence: "这个周末，我打算去图书馆看书。" }, 
+            { word: "缩", pinyin: "suō", meaning: "mengecut / menyusut", sentence: "乌龟遇到危险时，会把头缩进壳里。" }, 
+            { word: "令", pinyin: "lìng", meaning: "menyebabkan", sentence: "这个好消息令全家人都非常开心。" }, 
+            { word: "说谎", pinyin: "shuō huǎng", meaning: "berbohong", sentence: "我们要做诚实的孩子，绝对不能说谎。" }, 
+            { word: "太棒了", pinyin: "tài bàng le", meaning: "hebatnya / bagusnya", sentence: "你这次考试拿了满分，真是太棒了！" },
+            { word: "飞扬", pinyin: "fēi yáng", meaning: "berterbangan", sentence: "一阵风吹来，地上的落叶随风飞扬。" }, 
+            { word: "耀眼", pinyin: "yào yǎn", meaning: "menyilaukan", sentence: "舞台上的灯光非常耀眼。" }
+          ],
+          "第十六单元 童话故事会": [
+            { word: "派", pinyin: "pài", meaning: "menghantar / mengutus", sentence: "老师派我去参加全校讲故事比赛。" }, 
+            { word: "教训", pinyin: "jiào xùn", meaning: "pengajaran / nasihat", sentence: "这次失败给了他一个深刻的教训。" }, 
+            { word: "努力", pinyin: "nǔ lì", meaning: "berusaha", sentence: "只要努力学习，成绩一定会不断进步。" }, 
+            { word: "英勇", pinyin: "yīng yǒng", meaning: "berani", sentence: "英勇的消防员冲进火场救出了小女孩。" }, 
+            { word: "弓箭", pinyin: "gōng jiàn", meaning: "busur dan anak panah", sentence: "猎人拿着弓箭走进森林里打猎。" },
+            { word: "褪色", pinyin: "tuì shǎi", meaning: "luntur warna", sentence: "这件衣服洗了很多次，已经严重褪色了。" }
+          ],
+          "第十七单元 真正的友情": [
+            { word: "优良", pinyin: "yōu liáng", meaning: "cemerlang / baik", sentence: "他是一个品学兼优，成绩优良的好学生。" }, 
+            { word: "清楚", pinyin: "qīng chǔ", meaning: "jelas", sentence: "老师把这道数学题解释得非常清楚。" }, 
+            { word: "曾经", pinyin: "céng jīng", meaning: "pernah", sentence: "我曾经去过马六甲，那里有很多古迹。" }, 
+            { word: "拳头", pinyin: "quán tóu", meaning: "penumbuk", sentence: "他生气地握紧拳头，一句话也不说。" }, 
+            { word: "罚", pinyin: "fá", meaning: "mendenda / hukum", sentence: "弟弟因为做错事，被妈妈罚站十分钟。" },
+            { word: "不安", pinyin: "bù ān", meaning: "gelisah / tidak tenang", sentence: "做错事后，他的心里感到非常不安。" }, 
+            { word: "后悔", pinyin: "hòu huǐ", meaning: "menyesal", sentence: "我很后悔昨天没有听妈妈的话。" }
+          ],
+          "第十八单元 自然的规律": [
+            { word: "压力", pinyin: "yā lì", meaning: "tekanan", sentence: "考试快到了，他感到有一点学习压力。" }, 
+            { word: "高峰", pinyin: "gāo fēng", meaning: "puncak", sentence: "登山者坚持不懈，终于爬上了这座山的高峰。" }, 
+            { word: "秩序井然", pinyin: "zhì xù jǐng rán", meaning: "tersusun rapi", sentence: "大家都排队上巴士，现场秩序井然。" }, 
+            { word: "忍受", pinyin: "rěn shòu", meaning: "menahan / bersabar", sentence: "在太阳底下站了那么久，他实在无法忍受了。" }, 
+            { word: "万丈阳光", pinyin: "wàn zhàng yáng guāng", meaning: "cahaya matahari yang terang", sentence: "早晨，万丈阳光照亮了整个美丽的大地。" }, 
+            { word: "啄木鸟", pinyin: "zhuó mù niǎo", meaning: "burung belatuk", sentence: "啄木鸟在树干上捉虫，就像树木的医生。" }, 
+            { word: "猫头鹰", pinyin: "māo tóu yīng", meaning: "burung hantu", sentence: "猫头鹰喜欢在夜晚出来捕捉老鼠。" }
+          ],
+          "第十九单元 站在高楼看世界": [
+            { word: "长颈鹿", pinyin: "cháng jǐng lù", meaning: "zirafah", sentence: "动物园里的长颈鹿正在吃树顶上的叶子。" }, 
+            { word: "预测", pinyin: "yù cè", meaning: "meramal", sentence: "气象局预测明天下午会下大雨。" }, 
+            { word: "仿佛", pinyin: "fǎng fú", meaning: "seolah-olah", sentence: "天上的白云仿佛是一群可爱的小白羊。" }, 
+            { word: "横越", pinyin: "héng yuè", meaning: "merentasi / melintasi", sentence: "这座大桥横越了一条宽阔的河流。" }, 
+            { word: "兴隆", pinyin: "xīng lóng", meaning: "makmur / maju", sentence: "这家餐厅的食物很好吃，所以生意非常兴隆。" }
+          ],
+          "第二十单元 特别的体验": [
+            { word: "圣诞", pinyin: "shèng dàn", meaning: "Krismas", sentence: "圣诞节到了，我们收到了很多惊喜礼物。" }, 
+            { word: "捐出", pinyin: "juān chū", meaning: "mendermakan", sentence: "他把自己的零用钱捐出来帮助穷苦的人。" }, 
+            { word: "感染", pinyin: "gǎn rǎn", meaning: "terjangkit / terpengaruh", sentence: "他那开心的笑声感染了周围的每一个人。" }, 
+            { word: "鼻子一酸", pinyin: "bí zi yī suān", meaning: "berasa sedih / terharu", sentence: "听到这个感人的故事，我忍不住鼻子一酸。" }, 
+            { word: "赚", pinyin: "zhuàn", meaning: "memperoleh keuntungan / mendapat duit", sentence: "他通过帮忙卖旧报纸赚了一点零用钱。" }, 
+            { word: "上网", pinyin: "shàng wǎng", meaning: "melayari internet", sentence: "哥哥经常上网查找写作文的资料。" }, 
+            { word: "州", pinyin: "zhōu", meaning: "negeri", sentence: "柔佛是马来西亚南部的一个州。" }
+          ]
+        };
+
+        let currentData = grade3Data;
+
+        // ==========================================
+        // 2. 全局状态变量
+        // ==========================================
+        let favorites = JSON.parse(localStorage.getItem('vocab_favorites')) || [];
+        let visitedChapters = JSON.parse(localStorage.getItem('vocab_visited_chapters')) || [];
+        let speechRate = parseFloat(localStorage.getItem('vocab_speech_rate')) || 1.0;
+        let dictationInterval = parseInt(localStorage.getItem('vocab_dictation_interval')) || 5;
+
+        // 记忆挑战 (Flashcard) 模式变量：仅控制外部列表视图的拼音显示
+        let hidePinyinChallenge = false;
+        let meaningRevealed = false; // 卡片内默认隐藏意思
+
+        // 当前视图追踪，方便跨视图操作
+        let activeView = 'wordlist';
+        let activeChapter = Object.keys(grade3Data)[0];
+
+        // 打印任务暂存变量
+        let currentPrintJob = { title: "", list: [] };
+
+        // 学习与听写相关状态
+        let currentStudyList = [];
+        let currentIndex = 0;
+        let currentWriters = [];
+        let synth = window.speechSynthesis;
+        let dictationTimer = null;
+
+        // ==========================================
+        // 3. 初始化与渲染
+        // ==========================================
+        function init() {
+            applyDarkMode();
+            updateFavCount();
+            populateDictationSelect();
+
+            // 恢复设置值
+            document.getElementById('speechRateInput').value = speechRate;
+            document.getElementById('dictationIntervalInput').value = dictationInterval;
+            document.getElementById('dictationIntervalInput2').value = dictationInterval;
+            document.getElementById('speedValDisplay').textContent = speechRate;
+            document.getElementById('intervalValDisplay').textContent = dictationInterval;
+            document.getElementById('dictationIntervalDisplay2').textContent = dictationInterval;
+
+            // 默认打开第一课
+            openChapter(activeChapter);
+        }
+
+        // 切换深色模式
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('vocab_theme', isDark ? 'dark' : 'light');
+            
+            const icon = document.getElementById('themeIcon');
+            if (isDark) {
+                icon.className = 'ph-fill ph-sun text-2xl text-yellow-400';
+            } else {
+                icon.className = 'ph-fill ph-moon text-2xl';
+            }
+            
+            if (document.getElementById('studyModal') && !document.getElementById('studyModal').classList.contains('hidden')) {
+                updateStudyModalContent(true); 
+            }
+        }
+
+        function applyDarkMode() {
+            const theme = localStorage.getItem('vocab_theme');
+            const icon = document.getElementById('themeIcon');
+            if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                icon.className = 'ph-fill ph-sun text-2xl text-yellow-400';
+            } else {
+                icon.className = 'ph-fill ph-moon text-2xl text-slate-500';
+            }
+        }
+
+        // 视图切换
+        function hideAllViews() {
+            ['view-wordlist', 'view-favorites', 'view-dictation', 'view-dictation-active'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.classList.add('hidden');
+            });
+            endDictationTest(true); 
+        }
+
+        function switchTab(tabName) {
+            hideAllViews();
+            activeView = tabName;
+            renderChapterList(); // 更新侧边栏高亮状态
+            
+            if(tabName === 'wordlist') {
+                document.getElementById('view-wordlist').classList.remove('hidden');
+                document.getElementById('view-wordlist').classList.add('fade-in');
+            } else if(tabName === 'dictation') {
+                document.getElementById('view-dictation').classList.remove('hidden');
+                document.getElementById('view-dictation').classList.add('fade-in');
+            } else if(tabName === 'favorites') {
+                document.getElementById('view-favorites').classList.remove('hidden');
+                document.getElementById('view-favorites').classList.add('fade-in');
+                renderFavorites();
+            }
+        }
+
+        // ==========================================
+        // 4. 目录与词语列表渲染
+        // ==========================================
+        function renderChapterList() {
+            const container = document.getElementById('chapterListContainer');
+            container.innerHTML = '';
+            
+            Object.keys(currentData).forEach((chapterName, idx) => {
+                const words = currentData[chapterName];
+                const count = words.length;
+                const isActive = (activeView === 'wordlist' && activeChapter === chapterName);
+
+                const card = document.createElement('div');
+                card.className = `shrink-0 cursor-pointer rounded-full lg:rounded-2xl px-5 py-2.5 lg:p-4 shadow-sm border transition-all duration-300 flex items-center justify-between group ` +
+                    (isActive 
+                        ? `bg-primary text-white border-primary shadow-md transform lg:translate-x-1` 
+                        : `bg-white dark:bg-darkCard text-slate-700 dark:text-slate-300 border-slate-100 dark:border-slate-700 hover:border-primary/50 hover:shadow`);
+                
+                card.onclick = () => openChapter(chapterName);
+                
+                card.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="font-bold text-sm lg:text-base leading-tight">${chapterName}</span>
+                        <span class="text-xs mt-0.5 ${isActive ? 'text-blue-100' : 'text-slate-400 dark:text-slate-500'} hidden lg:block">${count} 个生字</span>
+                    </div>
+                    <i class="ph-bold ph-caret-right text-lg hidden lg:block ${isActive ? 'text-white' : 'text-slate-300 dark:text-slate-600 group-hover:text-primary'}"></i>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openChapter(chapterName) {
+            if(!visitedChapters.includes(chapterName)) {
+                visitedChapters.push(chapterName);
+                localStorage.setItem('vocab_visited_chapters', JSON.stringify(visitedChapters));
+            }
+            
+            activeChapter = chapterName;
+            switchTab('wordlist');
+            document.getElementById('currentChapterTitle').textContent = chapterName;
+
+            const words = currentData[chapterName];
+            currentStudyList = words;
+            document.getElementById('chapterWordCount').textContent = words.length;
+
+            const container = document.getElementById('wordListContainer');
+            container.innerHTML = '';
+
+            words.forEach((item, index) => {
+                const isFav = isFavorite(item.word);
+                const btnCard = document.createElement('div');
+                btnCard.className = "bg-white dark:bg-darkCard rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 cursor-pointer hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 flex flex-col items-center relative group";
+                btnCard.onclick = () => openStudyModal(index);
+                
+                // 根据全局拼音设置判断列表里的拼音是否显示
+                const showPinyinText = hidePinyinChallenge ? '***' : item.pinyin;
+
+                btnCard.innerHTML = `
+                    <div class="absolute top-3 right-3 text-xl transition-all duration-300 ${isFav ? 'text-yellow-500 opacity-100 scale-110' : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 hover:text-yellow-400'}">
+                        <i class="ph-fill ph-star"></i>
+                    </div>
+                    <div class="text-sm font-bold text-slate-400 dark:text-slate-500 mb-2 tracking-widest">${showPinyinText}</div>
+                    <div class="text-4xl md:text-5xl font-kaiti font-bold text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors duration-300">${item.word}</div>
+                `;
+                container.appendChild(btnCard);
+            });
+        }
+
+        // ==========================================
+        // 5. 记忆挑战 (Flashcard) 联动与学习卡片逻辑
+        // ==========================================
+        
+        // 监听目录页的隐藏拼音开关，实现全局联动
+        function toggleGlobalPinyin(checked) {
+            hidePinyinChallenge = checked;
+            
+            document.querySelectorAll('.pinyin-checkbox').forEach(cb => {
+                if(cb.checked !== checked) cb.checked = checked;
+            });
+            
+            const bg = document.getElementById('globalPinyinToggleBg');
+            const dot = document.getElementById('globalPinyinToggleDot');
+            if (checked) {
+                bg.classList.replace('bg-slate-300', 'bg-primary');
+                bg.classList.replace('dark:bg-slate-600', 'bg-primary');
+                dot.classList.replace('translate-x-1', 'translate-x-6');
+            } else {
+                bg.classList.replace('bg-primary', 'bg-slate-300');
+                if(!bg.classList.contains('bg-slate-300')) bg.classList.add('bg-slate-300', 'dark:bg-slate-600');
+                dot.classList.replace('translate-x-6', 'translate-x-1');
+            }
+            
+            // 自动刷新正在查看的列表以隐藏/显示拼音
+            if (!document.getElementById('view-wordlist').classList.contains('hidden')) {
+                openChapter(activeChapter);
+            } else if (!document.getElementById('view-favorites').classList.contains('hidden')) {
+                renderFavorites();
+            }
+        }
+
+        // 全局公开：点击显示意思的函数（Maksud专用高灵敏按钮使用）
+        window.revealMeaning = function() {
+            meaningRevealed = true;
+            const item = currentStudyList[currentIndex];
+            const meaningContainer = document.getElementById('studyMeaningContainer');
+            if(meaningContainer && item) {
+                let meaningText = item.meaning || 'Tiada Maksud';
+                meaningContainer.innerHTML = `
+                    <div class="w-full text-left bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 shadow-sm fade-in mt-4">
+                        <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400 mb-2 flex items-center gap-1.5">
+                            <i class="ph-fill ph-translate text-lg"></i> 释义 Maksud
+                        </span>
+                        <div class="text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-wide mt-1">${meaningText}</div>
+                    </div>
+                `;
+            }
+        };
+
+        function nextStudyWord() {
+            if (currentIndex < currentStudyList.length - 1) {
+                currentIndex++;
+                updateStudyModalContent();
+                playCurrentWordAudio();
+            } else {
+                closeModal('studyModal');
+            }
+        }
+
+        function prevStudyWord() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateStudyModalContent();
+                playCurrentWordAudio();
+            }
+        }
+
+        // 绑定学习流程的按键监听 (适配翻页和空格键控制，同时屏蔽 Input 输入冲突)
+        window.addEventListener('keydown', function(e) {
+            // 防止在输入框打字时误触切换卡片或发音
+            const activeTag = document.activeElement.tagName;
+            if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
+
+            const modal = document.getElementById('studyModal');
+            if (modal && !modal.classList.contains('hidden')) {
+                if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+                    prevStudyWord();
+                } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+                    nextStudyWord();
+                } else if (e.code === 'Space') {
+                    e.preventDefault();
+                    playCurrentWordAudio();
+                }
+            }
+
+            const dictationActive = document.getElementById('view-dictation-active');
+            if (dictationActive && !dictationActive.classList.contains('hidden')) {
+                if (e.code === 'Enter' || e.code === 'ArrowRight') {
+                    nextDictationWord();
+                } else if (e.code === 'Space') {
+                    e.preventDefault();
+                    playCurrentDictationWord();
+                }
+            }
+        });
+
+        function startChapterStudy() {
+            if(currentStudyList.length > 0) openStudyModal(0);
+        }
+
+        function openStudyModal(index) {
+            currentIndex = index;
+            const m = document.getElementById('studyModal');
+            m.classList.remove('hidden');
+            
+            setTimeout(() => {
+                try {
+                    updateStudyModalContent();
+                } catch (e) {
+                    console.error("渲染卡片时遇到错误:", e);
+                }
+                
+                m.classList.remove('opacity-0');
+                if(m.lastElementChild) {
+                    m.lastElementChild.classList.remove('scale-95');
+                    m.lastElementChild.classList.add('scale-100');
+                }
+                playCurrentWordAudio();
+            }, 20);
+        }
+
+        function updateStudyModalContent(onlyRedraw = false) {
+            let item = currentStudyList[currentIndex];
+            
+            // 兼容性字典数据修复
+            if (!item.meaning || !item.sentence) {
+                let foundItem = null;
+                for (let key in grade3Data) {
+                    let match = grade3Data[key].find(w => w.word === item.word);
+                    if (match) {
+                        foundItem = match;
+                        break;
+                    }
+                }
+                if (foundItem) {
+                    item.meaning = foundItem.meaning;
+                    item.sentence = foundItem.sentence;
+                }
+            }
+
+            if (!onlyRedraw) {
+                // 每次翻页，重置记忆挑战的“揭开”状态
+                meaningRevealed = false;
+                
+                // 渲染顶部导航及基本信息
+                document.getElementById('studySentence').textContent = item.sentence ? item.sentence : '暂无例句';
+                document.getElementById('studyModalProgress').textContent = `${currentIndex + 1} / ${currentStudyList.length}`;
+                
+                // 导航按钮状态控制
+                document.getElementById('btnPrevWord').disabled = currentIndex === 0;
+                
+                if (currentIndex === currentStudyList.length - 1) {
+                    document.getElementById('btnNextWord').innerHTML = `<i class="ph-bold ph-check text-xl pointer-events-none"></i> 学习完成`;
+                    document.getElementById('btnNextWord').className = "relative z-[70] flex-1 py-3.5 bg-secondary text-white rounded-xl shadow-lg shadow-emerald-500/30 font-bold hover:bg-emerald-600 transition flex justify-center items-center gap-2 group cursor-pointer";
+                } else {
+                    document.getElementById('btnNextWord').innerHTML = `下一个 <i class="ph-bold ph-caret-right group-hover:translate-x-1 transition-transform pointer-events-none"></i>`;
+                    document.getElementById('btnNextWord').className = "relative z-[70] flex-1 py-3.5 bg-primary text-white rounded-xl shadow-lg shadow-blue-500/30 font-bold hover:bg-primaryHover transition flex justify-center items-center gap-2 group cursor-pointer";
+                }
+
+                // 收藏星标
+                const icon = document.getElementById('iconFavorite');
+                if (isFavorite(item.word)) {
+                    icon.className = 'ph-fill ph-star text-3xl text-yellow-500 group-hover:scale-110 transition-transform pointer-events-none';
+                } else {
+                    icon.className = 'ph-bold ph-star text-3xl text-slate-400 group-hover:text-yellow-400 group-hover:scale-110 transition-transform pointer-events-none';
+                }
+            }
+
+            // ===============================================
+            // 渲染：精确配对汉字与拼音、部首 (垂直排布)
+            // ===============================================
+            const chars = item.word.split('').filter(char => /[\u4e00-\u9fa5]/.test(char));
+            const pinyins = item.pinyin.split(' ');
+            
+            let wordHtml = '';
+            chars.forEach((c, idx) => {
+                let py = pinyins[idx] || '';
+                let rad = '？', strk = '？';
+                try {
+                    if (window.cnchar) {
+                        let rList = cnchar.radical(c);
+                        rad = (Array.isArray(rList) && rList.length > 0) ? (rList[0].radical || '？') : (typeof rList === 'string' ? rList : (rList && rList.radical ? rList.radical : '？'));
+                        strk = cnchar.stroke(c) || '？';
+                    }
+                } catch(err) {}
+
+                wordHtml += `
+                    <div class="flex flex-col items-center gap-3">
+                        <!-- 汉字本身 -->
+                        <div class="text-[5.5rem] lg:text-[6.5rem] font-kaiti font-bold text-slate-900 dark:text-white leading-none drop-shadow-sm transition-transform hover:scale-105">${c}</div>
+                        <!-- 拼音严格在下方 -->
+                        <div class="px-4 py-1 bg-blue-50 text-primary dark:bg-blue-900/30 dark:text-blue-300 rounded-lg text-xl lg:text-2xl font-bold tracking-widest border border-blue-100 dark:border-blue-800/50">
+                            ${py}
+                        </div>
+                        <!-- 部首笔画再下方 -->
+                        <div class="text-xs lg:text-sm font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-md border border-slate-200 dark:border-slate-700">
+                            <span class="text-primary font-kaiti text-base mr-1">${rad}</span>部 <span class="mx-1 text-slate-300 dark:text-slate-600">|</span> ${strk}画
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('studyWordContainer').innerHTML = wordHtml;
+
+            // ===============================================
+            // 渲染：释义 (卡片内强制默认隐藏，巨型独立按钮)
+            // ===============================================
+            const meaningContainer = document.getElementById('studyMeaningContainer');
+            if (!meaningRevealed) {
+                meaningContainer.innerHTML = `
+                    <button onclick="revealMeaning()" class="w-full mt-2 cursor-pointer text-base md:text-lg font-bold text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2 py-4 px-8 bg-slate-100 dark:bg-slate-800 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-300 transition-all shadow-sm active:scale-95">
+                        <i class="ph-fill ph-eye text-2xl pointer-events-none"></i> <span class="pointer-events-none">点击显示释义 Maksud</span>
+                    </button>
+                `;
+            } else {
+                let meaningText = item.meaning || 'Tiada Maksud';
+                meaningContainer.innerHTML = `
+                    <div class="w-full mt-2 text-left bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 shadow-sm fade-in">
+                        <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400 mb-2 flex items-center gap-1.5">
+                            <i class="ph-fill ph-translate text-lg"></i> 释义 Maksud
+                        </span>
+                        <div class="text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-wide mt-1">${meaningText}</div>
+                    </div>
+                `;
+            }
+
+            // 控制手写提示语隐藏
+            const drawHint = document.getElementById('drawHint');
+            if (drawHint) drawHint.classList.add('hidden');
+
+            // 静态折解和动态笔顺
+            renderCncharStatic(chars);
+            renderHanziWriters(chars);
+        }
+
+        // 绘制静态笔顺拆解图
+        function renderCncharStatic(charsArray) {
+            const container = document.getElementById('cncharStaticDraw');
+            container.innerHTML = ''; 
+            if (charsArray.length === 0) return;
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const strokeColor = isDark ? '#e2e8f0' : '#1e293b';
+            const radicalColor = '#3b82f6';
+            const outlineColor = isDark ? '#334155' : '#f1f5f9';
+
+            try {
+                if (window.cnchar && cnchar.draw) {
+                    cnchar.draw(charsArray.join(''), {
+                        type: 'stroke',
+                        el: '#cncharStaticDraw',
+                        style: {
+                            length: 50,
+                            padding: 5,
+                            strokeColor: strokeColor,
+                            radicalColor: radicalColor,
+                            outlineColor: outlineColor
+                        }
+                    });
+                }
+            } catch (e) {
+                console.warn("cnchar-draw 失败:", e);
+                container.innerHTML = '<span class="text-sm text-slate-400">静态笔画加载中...</span>';
+            }
+        }
+
+        // Hanzi Writer 渲染动态笔顺
+        function renderHanziWriters(charsArray) {
+            const container = document.getElementById('strokeContainer');
+            // UX 防抖：取消上一批未完成的动画渲染
+            if (currentWriters && currentWriters.length > 0) {
+                currentWriters.forEach(w => { if(w.cancelQuiz) w.cancelQuiz(); });
+            }
+            container.innerHTML = '';
+            currentWriters = [];
+            
+            const isDark = document.documentElement.classList.contains('dark');
+            const strokeColor = isDark ? '#e2e8f0' : '#1e293b';
+            const radicalColor = '#3b82f6';
+            const outlineColor = isDark ? '#334155' : '#f1f5f9';
+            
+            charsArray.forEach(char => {
+                const charBox = document.createElement('div');
+                charBox.className = "hanzi-box border-2 border-dashed border-slate-200 dark:border-slate-600 bg-white dark:bg-darkCard rounded-xl p-2 w-24 h-24 md:w-28 md:h-28 flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors shadow-sm relative";
+                
+                // 田字格十字辅助线 (比原来的米字格更淡更专业)
+                charBox.innerHTML = `
+                    <div class="absolute inset-0 flex justify-center items-center pointer-events-none opacity-[0.15] dark:opacity-10">
+                        <div class="w-full h-px bg-red-500"></div>
+                        <div class="h-full w-px bg-red-500 absolute"></div>
+                    </div>
+                `;
+                container.appendChild(charBox);
+
+                const writer = HanziWriter.create(charBox, char, {
+                    width: 90,
+                    height: 90,
+                    padding: 5,
+                    strokeColor: strokeColor,
+                    radicalColor: radicalColor,
+                    outlineColor: outlineColor,
+                    showOutline: true,
+                    delayBetweenStrokes: 100
+                });
+                
+                // 移除 onclick，避免与手写练习的触摸绘画事件冲突
+                currentWriters.push(writer);
+            });
+
+            if(currentWriters.length > 0) {
+                setTimeout(() => currentWriters[0].animateCharacter(), 500);
+            }
+        }
+
+        function animateAllStrokes() {
+            const drawHint = document.getElementById('drawHint');
+            if (drawHint) drawHint.classList.add('hidden');
+            
+            currentWriters.forEach(w => {
+                w.cancelQuiz(); // 退出手写模式
+                w.animateCharacter();
+            });
+        }
+
+        function quizAllStrokes() {
+            const drawHint = document.getElementById('drawHint');
+            if (drawHint) drawHint.classList.remove('hidden');
+            
+            currentWriters.forEach(w => {
+                w.quiz({
+                    onMistake: function(strokeData) {
+                        // 写错时的原生逻辑（HanziWriter 自动处理红光提示）
+                    },
+                    onComplete: function(summaryData) {
+                        // 写完单个字时的逻辑
+                    }
+                });
+            });
+        }
+
+        // ==========================================
+        // 6. 田字格/米字格 高级自适应字帖生成器
+        // ==========================================
+        function printCurrentChapterCopybook() {
+            const title = document.getElementById('currentChapterTitle').textContent;
+            currentPrintJob = { title: title, list: currentStudyList };
+            document.getElementById('printTitle').value = title;
+            openModal('printOptionsModal');
+        }
+
+        function printFavoritesCopybook() {
+            if (favorites.length === 0) {
+                alert("生字本还是空的，快去收藏一些生字再打印吧！");
+                return;
+            }
+            currentPrintJob = { title: "我的生字本", list: favorites };
+            document.getElementById('printTitle').value = "我的生字本";
+            openModal('printOptionsModal');
+        }
+
+        function executePrintSheet() {
+            const customTitle = document.getElementById('printTitle').value || currentPrintJob.title;
+            const gridType = document.getElementById('printGridType').value; 
+            const rowsCount = parseInt(document.getElementById('printRowsCount').value) || 1;
+            const showHeader = document.getElementById('printShowHeader').checked;
+            const showPinyin = document.getElementById('printShowPinyin').checked;
+            const showMeaning = document.getElementById('printShowMeaning').checked;
+            const traceFirstRow = document.getElementById('printTraceFirstRow').checked;
+
+            const wordsToPrint = currentPrintJob.list;
+            if (!wordsToPrint || wordsToPrint.length === 0) {
+                alert("没有可打印的生字！");
+                return;
+            }
+
+            let gridCSS = '';
+            if (gridType === 'tianzi') {
+                gridCSS = `.grid-box { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><line x1="0" y1="50" x2="100" y2="50" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/><line x1="50" y1="0" x2="50" y2="100" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/></svg>'); background-size: 100% 100%; }`;
+            } else if (gridType === 'mizi') {
+                gridCSS = `.grid-box { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><line x1="0" y1="50" x2="100" y2="50" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/><line x1="50" y1="0" x2="50" y2="100" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/><line x1="0" y1="0" x2="100" y2="100" stroke="%23fee2e2" stroke-width="0.5" stroke-dasharray="3,3"/><line x1="100" y1="0" x2="0" y2="100" stroke="%23fee2e2" stroke-width="0.5" stroke-dasharray="3,3"/></svg>'); background-size: 100% 100%; }`;
+            }
+
+            let headerHTML = '';
+            if (showHeader) {
+                headerHTML = `
+                    <div class="student-info">
+                        <span>姓名: ____________________</span>
+                        <span>班级: ____________________</span>
+                        <span>日期: _____年____月____日</span>
+                    </div>
+                `;
+            }
+
+            let htmlContent = `
+                <!DOCTYPE html>
+                <html lang="zh-CN">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${customTitle} - 字帖打印</title>
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-web@latest/style.css" />
+                    <style>
+                        @page { size: A4 portrait; margin: 15mm; }
+                        body { font-family: "KaiTi", "STKaiti", "楷体", "BiauKai", "LXGW WenKai Screen", serif; padding: 0; margin: 0; color: #000; }
+                        h1 { text-align: center; font-family: sans-serif; font-size: 24px; margin-bottom: 15px; color: #333; }
+                        
+                        .student-info { display: flex; justify-content: space-between; margin-bottom: 25px; padding-bottom: 10px; border-bottom: 2px solid #333; font-family: sans-serif; font-size: 15px; color: #444; }
+                        .page-container { display: flex; flex-wrap: wrap; gap: 30px 25px; justify-content: flex-start; }
+                        .word-block { display: flex; flex-direction: column; align-items: flex-start; page-break-inside: avoid; width: 100%; }
+                        .header-row { display: flex; flex-direction: row; margin-bottom: 5px; }
+                        .practice-row { display: flex; flex-direction: row; margin-bottom: 4px; }
+                        .char-col { display: flex; flex-direction: column; align-items: center; }
+                        
+                        .pinyin-text { font-family: sans-serif; font-size: 14px; color: #555; margin-top: 4px; line-height: 1; text-align: center; min-height: 14px; }
+                        .meaning-text { font-family: sans-serif; font-size: 12px; color: #666; margin-top: 8px; text-align: left; max-width: 100%; border-top: 1px dashed #eee; padding-top: 6px; word-wrap: break-word; line-height: 1.4;}
+                        
+                        .grid-box { width: 50px; height: 50px; border: 1.5px solid #000; position: relative; display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: normal; box-sizing: border-box; }
+                        ${gridCSS}
+                        .empty { color: transparent; }
+                        .trace { color: rgba(0,0,0,0.15); }
+                        
+                        .footer-branding { text-align: center; margin-top: 40px; font-family: sans-serif; font-size: 10px; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>新廊华小 · ${customTitle}</h1>
+                    ${headerHTML}
+                    <div class="page-container">
+            `;
+
+            wordsToPrint.forEach(item => {
+                const chars = item.word.replace(/[^\u4e00-\u9fa5]/g, '').split('');
+                if (chars.length === 0) return; 
+                const pinyins = item.pinyin.trim().split(/\s+/);
+                
+                htmlContent += `<div class="word-block">`;
+                
+                // --- Row 1: Word + Pinyin ---
+                htmlContent += `<div class="header-row">`;
+                
+                htmlContent += `
+                    <div style="width: 70px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; margin-right: 12px; padding: 4px;">
+                        <span style="font-size: 9px; color: #94a3b8; font-family: sans-serif; font-weight: bold;">释义 Maksud</span>
+                        <span style="font-size: 11px; color: #059669; text-align: center; font-family: sans-serif; font-weight: bold; margin-top: 4px; display: ${showMeaning ? 'block' : 'none'};">${item.meaning || 'N/A'}</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                `;
+
+                for (let r = 0; r < rowsCount; r++) {
+                    htmlContent += `<div class="practice-row">`;
+                    for (let i = 0; i < 10; i++) {
+                        const charIdx = i % chars.length;
+                        const isTracing = (r === 0 && traceFirstRow) && (i < (chars.length * (chars.length === 1 ? 2 : 1)));
+                        const showText = isTracing ? chars[charIdx] : '';
+                        const displayPinyin = (r === 0 && showPinyin && i < chars.length) ? (pinyins[charIdx] || '') : '';
+                        const leftBorder = i === 0 ? '' : 'border-left: none;';
+                        
+                        htmlContent += `
+                            <div class="char-col">
+                                <span style="font-size: 11px; height: 16px; font-weight: bold; color: rgba(220,38,38,0.8); visibility: ${(r === 0 && showPinyin && displayPinyin) ? 'visible' : 'hidden'};">${displayPinyin}</span>
+                                <div class="grid-box ${isTracing ? 'trace' : 'empty'}" style="${leftBorder}">${showText}</div>
+                            </div>
+                        `;
+                    }
+                    htmlContent += `</div>`;
+                }
+
+                htmlContent += `</div></div></div>`;
+            });
+
+            htmlContent += `
+                    </div>
+                    <div class="footer-branding">
+                        新廊华小 SJK(C) Ladang Grisek · 三年级华文智能学习系统一键生成
+                    </div>
+                    <script>
+                        window.onload = function() { setTimeout(function() { window.print(); }, 800); };
+                    <\/script>
+                </body>
+                </html>
+            `;
+
+            const printWin = window.open('', '_blank');
+            if (!printWin) {
+                alert("打印窗口被浏览器拦截，请允许本站弹出窗口！");
+                return;
+            }
+            printWin.document.open();
+            printWin.document.write(htmlContent);
+            printWin.document.close();
+            
+            closeModal('printOptionsModal');
+        }
+
+        // ==========================================
+        // 7. 语音合成 (Text-to-Speech)
+        // ==========================================
+        function playCurrentWordAudio() {
+            if(!currentStudyList[currentIndex]) return;
+            const word = currentStudyList[currentIndex].word;
+            speak(word);
+        }
+
+        function speak(text) {
+            if (synth.speaking) synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.rate = speechRate;
+            synth.speak(utterance);
+        }
+
+        // ==========================================
+        // 8. 生字本 (收藏) 功能
+        // ==========================================
+        function isFavorite(word) {
+            return favorites.some(f => f.word === word);
+        }
+
+        function toggleFavoriteCurrent() {
+            const item = currentStudyList[currentIndex];
+            if (isFavorite(item.word)) {
+                favorites = favorites.filter(f => f.word !== item.word);
+            } else {
+                favorites.unshift(item); 
+            }
+            localStorage.setItem('vocab_favorites', JSON.stringify(favorites));
+            updateFavCount();
+            updateStudyModalContent(true); 
+            
+            if (!document.getElementById('view-favorites').classList.contains('hidden')) {
+                renderFavorites();
+            }
+        }
+
+        function updateFavCount() {
+            const badge = document.getElementById('favCountBadge');
+            const printBtn = document.getElementById('btnPrintFavorites');
+            
+            if(favorites.length > 0) {
+                badge.textContent = favorites.length;
+                badge.classList.remove('hidden');
+                if (printBtn) printBtn.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+                if (printBtn) printBtn.classList.add('hidden');
+            }
+        }
+
+        function renderFavorites() {
+            const container = document.getElementById('favoritesContainer');
+            const emptyMsg = document.getElementById('emptyFavoritesMsg');
+            container.innerHTML = '';
+            
+            if(favorites.length === 0) {
+                emptyMsg.classList.remove('hidden');
+            } else {
+                emptyMsg.classList.add('hidden');
+                currentStudyList = favorites;
+
+                favorites.forEach((item, index) => {
+                    const btn = document.createElement('div');
+                    btn.className = "bg-white dark:bg-darkCard rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 cursor-pointer hover:border-yellow-400 dark:hover:border-yellow-400 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 flex flex-col items-center relative group";
+                    btn.onclick = () => openStudyModal(index);
+                    
+                    // 根据全局设置隐藏拼音
+                    const showPinyinText = hidePinyinChallenge ? '***' : item.pinyin;
+
+                    btn.innerHTML = `
+                        <div class="absolute top-3 right-3 text-xl text-yellow-500 scale-110 group-hover:scale-125 transition-transform">
+                            <i class="ph-fill ph-star"></i>
+                        </div>
+                        <div class="text-sm font-bold text-slate-400 dark:text-slate-500 mb-2 tracking-widest">${showPinyinText}</div>
+                        <div class="text-4xl md:text-5xl font-kaiti font-bold text-slate-800 dark:text-slate-100 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors duration-300">${item.word}</div>
+                    `;
+                    container.appendChild(btn);
+                });
+            }
+        }
+
+        // ==========================================
+        // 9. 听写测试模式
+        // ==========================================
+        function populateDictationSelect() {
+            const select = document.getElementById('dictationChapterSelect');
+            select.innerHTML = '<option value="ALL">全部生字 (随机抽查20个)</option><option value="FAV">我的生字本</option>';
+            
+            Object.keys(currentData).forEach(chapter => {
+                select.innerHTML += `<option value="${chapter}">${chapter}</option>`;
+            });
+        }
+
+        function syncDictationInterval(val) {
+            dictationInterval = parseInt(val);
+            document.getElementById('dictationIntervalInput').value = dictationInterval;
+            document.getElementById('dictationIntervalInput2').value = dictationInterval;
+            document.getElementById('intervalValDisplay').textContent = dictationInterval;
+            document.getElementById('dictationIntervalDisplay2').textContent = dictationInterval;
+            updateSettings();
+        }
+
+        function startDictationTest() {
+            const val = document.getElementById('dictationChapterSelect').value;
+            let listToTest = [];
+
+            if (val === 'ALL') {
+                Object.values(currentData).forEach(arr => listToTest = listToTest.concat(arr));
+                listToTest.sort(() => 0.5 - Math.random());
+                listToTest = listToTest.slice(0, 20);
+            } else if (val === 'FAV') {
+                if(favorites.length === 0) return alert("你的生字本是空的哦！赶快去收藏一些生字吧。");
+                listToTest = [...favorites].sort(() => 0.5 - Math.random());
+            } else {
+                listToTest = currentData[val];
+            }
+
+            if(listToTest.length === 0) return;
+
+            currentStudyList = listToTest;
+            currentIndex = 0;
+            
+            document.getElementById('view-dictation').classList.add('hidden');
+            document.getElementById('view-dictation-active').classList.remove('hidden');
+            
+            executeDictationWord();
+        }
+
+        function executeDictationWord() {
+            clearTimeout(dictationTimer);
+            if(currentIndex >= currentStudyList.length) {
+                alert("太棒了！听写测试完成！");
+                endDictationTest();
+                return;
+            }
+
+            updateDictationUI();
+            playCurrentDictationWord();
+
+            dictationTimer = setTimeout(() => {
+                currentIndex++;
+                executeDictationWord();
+            }, dictationInterval * 1000);
+        }
+
+        function updateDictationUI() {
+            document.getElementById('dictationProgressText').textContent = `第 ${currentIndex + 1} / ${currentStudyList.length} 个词`;
+            const pct = ((currentIndex) / currentStudyList.length) * 100;
+            document.getElementById('dictationProgressBar').style.width = `${pct}%`;
+        }
+
+        function playCurrentDictationWord() {
+            if(currentStudyList[currentIndex]) {
+                speak(currentStudyList[currentIndex].word);
+            }
+        }
+
+        // 听写按键监听 (回车/空格控制下一个和重复)
+        window.addEventListener('keydown', function(e) {
+            const dictationActive = document.getElementById('view-dictation-active');
+            if (dictationActive && !dictationActive.classList.contains('hidden')) {
+                if (e.code === 'Enter') {
+                    nextDictationWord();
+                } else if (e.code === 'Space') {
+                    e.preventDefault();
+                    playCurrentDictationWord();
+                }
+            }
+        });
+
+        function nextDictationWord() {
+            if(currentIndex < currentStudyList.length - 1) {
+                currentIndex++;
+                executeDictationWord();
+            }
+        }
+
+        function prevDictationWord() {
+            if(currentIndex > 0) {
+                currentIndex--;
+                executeDictationWord();
+            }
+        }
+
+        function endDictationTest(silent = false) {
+            clearTimeout(dictationTimer);
+            if(synth.speaking) synth.cancel();
+            if(!silent) {
+                document.getElementById('view-dictation-active').classList.add('hidden');
+                document.getElementById('view-dictation').classList.remove('hidden');
+            }
+        }
+
+        // ==========================================
+        // 10. 设置与通用工具
+        // ==========================================
+        function openModal(modalId) {
+            const m = document.getElementById(modalId);
+            m.classList.remove('hidden');
+            setTimeout(() => {
+                m.classList.remove('opacity-0');
+                if (m.lastElementChild) {
+                    m.lastElementChild.classList.remove('scale-95');
+                    m.lastElementChild.classList.add('scale-100');
+                }
+            }, 10);
+        }
+
+        function closeModal(modalId) {
+            const m = document.getElementById(modalId);
+            m.classList.add('opacity-0');
+            if (m.lastElementChild) {
+                m.lastElementChild.classList.remove('scale-100');
+                m.lastElementChild.classList.add('scale-95');
+            }
+            setTimeout(() => { 
+                m.classList.add('hidden'); 
+                if(modalId === 'studyModal') { 
+                    document.getElementById('strokeContainer').innerHTML = ''; 
+                    document.getElementById('cncharStaticDraw').innerHTML = '';
+                    currentWriters = []; 
+                }
+            }, 300);
+        }
+
+        function updateSettings() {
+            speechRate = parseFloat(document.getElementById('speechRateInput').value);
+            dictationInterval = parseInt(document.getElementById('dictationIntervalInput').value);
+            localStorage.setItem('vocab_speech_rate', speechRate);
+            localStorage.setItem('vocab_dictation_interval', dictationInterval);
+        }
+
+        function clearAllData() {
+            if(confirm("确定要清除所有学习记录和生字本收藏吗？这无法撤销哦。")) {
+                favorites = []; visitedChapters = [];
+                localStorage.removeItem('vocab_favorites');
+                localStorage.removeItem('vocab_visited_chapters');
+                updateFavCount(); renderChapterList(); 
+                alert("清除成功！一切都重新开始啦。"); 
+                closeModal('settingsModal');
+            }
+        }
+
+        // Run App
+        init();
+    </script>
+</body>
+</html>
