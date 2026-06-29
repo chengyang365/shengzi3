@@ -64,7 +64,7 @@
         #cncharStaticDraw svg { max-width: 100%; height: auto; }
 
         /* 页面加载动画 */
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* 打印用网格背景 */
@@ -274,7 +274,7 @@
 
     <!-- 页脚 Branding -->
     <footer class="mt-auto py-6 text-center text-slate-400 dark:text-slate-500 text-xs font-semibold">
-        &copy; 2026 新廊华小 SJK(C) Ladang Grisek · 张政扬师与三年级华文组 荣誉出品
+        &copy; 2026 新廊华小 SJK(C) Ladang Grisek · 张政扬师及三年级华文组 荣誉出品
     </footer>
 
     <!-- 弹窗：生字学习卡片 (完全自适应版：电脑横向双排展示) -->
@@ -892,17 +892,23 @@
                 if(cb.checked !== checked) cb.checked = checked;
             });
             
-            const bg = document.getElementById('globalPinyinToggleBg');
-            const dot = document.getElementById('globalPinyinToggleDot');
-            if (checked) {
-                bg.classList.replace('bg-slate-300', 'bg-primary');
-                bg.classList.replace('dark:bg-slate-600', 'bg-primary');
-                dot.classList.replace('translate-x-1', 'translate-x-6');
-            } else {
-                bg.classList.replace('bg-primary', 'bg-slate-300');
-                if(!bg.classList.contains('bg-slate-300')) bg.classList.add('bg-slate-300', 'dark:bg-slate-600');
-                dot.classList.replace('translate-x-6', 'translate-x-1');
-            }
+            document.querySelectorAll('.pinyin-toggle-bg').forEach(bg => {
+                if (checked) {
+                    bg.classList.replace('bg-slate-300', 'bg-primary');
+                    bg.classList.replace('dark:bg-slate-600', 'bg-primary');
+                } else {
+                    bg.classList.replace('bg-primary', 'bg-slate-300');
+                    if(!bg.classList.contains('bg-slate-300')) bg.classList.add('bg-slate-300', 'dark:bg-slate-600');
+                }
+            });
+            
+            document.querySelectorAll('.pinyin-toggle-dot').forEach(dot => {
+                if (checked) {
+                    dot.classList.replace('translate-x-1', 'translate-x-6');
+                } else {
+                    dot.classList.replace('translate-x-6', 'translate-x-1');
+                }
+            });
             
             // 自动刷新正在查看的列表以隐藏/显示拼音
             if (!document.getElementById('view-wordlist').classList.contains('hidden')) {
@@ -1025,7 +1031,7 @@
                 // 每次翻页，重置记忆挑战的“揭开”状态
                 meaningRevealed = false;
                 
-                // 渲染顶部导航及基本信息
+                // 渲染大字和例句
                 document.getElementById('studySentence').textContent = item.sentence ? item.sentence : '暂无例句';
                 document.getElementById('studyModalProgress').textContent = `${currentIndex + 1} / ${currentStudyList.length}`;
                 
