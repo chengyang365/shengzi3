@@ -67,7 +67,13 @@
         .fade-in { animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 打印用网格背景 */
+        /* 米字格背景 (Web UI 显示使用) */
+        .grid-mizi-ui {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none" stroke="%23ef4444" stroke-width="1.5"/><line x1="0" y1="50" x2="100" y2="50" stroke="%23ef4444" stroke-width="1" stroke-dasharray="4,4"/><line x1="50" y1="0" x2="50" y2="100" stroke="%23ef4444" stroke-width="1" stroke-dasharray="4,4"/><line x1="0" y1="0" x2="100" y2="100" stroke="%23ef4444" stroke-width="0.5" stroke-dasharray="4,4"/><line x1="100" y1="0" x2="0" y2="100" stroke="%23ef4444" stroke-width="0.5" stroke-dasharray="4,4"/></svg>');
+            background-size: 100% 100%;
+        }
+
+        /* 打印用网格背景 (更柔和的颜色) */
         .grid-mizi {
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none" stroke="%23f87171" stroke-width="2"/><line x1="0" y1="50" x2="100" y2="50" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/><line x1="50" y1="0" x2="50" y2="100" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/><line x1="0" y1="0" x2="100" y2="100" stroke="%23fee2e2" stroke-width="0.5" stroke-dasharray="3,3"/><line x1="100" y1="0" x2="0" y2="100" stroke="%23fee2e2" stroke-width="0.5" stroke-dasharray="3,3"/></svg>');
             background-size: 100% 100%;
@@ -87,7 +93,7 @@
     <!-- 打印专区 -->
     <div id="printArea" class="hidden"></div>
 
-    <!-- 导航栏 (带新廊华小 Branding) -->
+    <!-- 导航栏 -->
     <nav class="bg-white/90 dark:bg-darkCard/90 backdrop-blur-md shadow-sm sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3 cursor-pointer group" onclick="switchTab('wordlist')">
@@ -103,7 +109,7 @@
             </div>
             
             <div class="flex items-center gap-1 md:gap-3 shrink-0">
-                <!-- 听写测试按钮移至此处 -->
+                <!-- 听写测试按钮 -->
                 <button onclick="switchTab('dictation')" class="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition text-emerald-500" title="听写测试">
                     <i class="ph-fill ph-headphones text-2xl"></i>
                 </button>
@@ -274,7 +280,7 @@
 
     <!-- 页脚 Branding -->
     <footer class="mt-auto py-6 text-center text-slate-400 dark:text-slate-500 text-xs font-semibold">
-        &copy; 2026 新廊华小 SJK(C) Ladang Grisek · 张政扬师及三年级华文组 荣誉出品
+        &copy; 2026 新廊华小 SJK(C) Ladang Grisek · 张政扬师与三年级华文组 荣誉出品
     </footer>
 
     <!-- 弹窗：生字学习卡片 (完全自适应版：电脑横向双排展示) -->
@@ -488,10 +494,10 @@
     <!-- 核心 JavaScript 逻辑 -->
     <script>
         // ==========================================
-        // 1. 三年级全册生字数据 (完整单元 1 - 20)
+        // 1. 三年级全册生字数据 (合并了综合词汇(1)和习写字，共1-20单元全覆盖)
         // ==========================================
         const grade3Data = {
-          "第一单元 上学的路": [
+          "第一单元 通往未来的路": [
             { word: "巨大", pinyin: "jù dà", meaning: "besar / raksasa", sentence: "大象有着巨大的身体。" },
             { word: "橙子", pinyin: "chéng zi", meaning: "oren", sentence: "妹妹最喜欢吃酸酸甜甜的橙子。" },
             { word: "鲜艳", pinyin: "xiān yàn", meaning: "cerah / berseri", sentence: "花园里开满了色彩鲜艳的花朵。" },
@@ -501,9 +507,13 @@
             { word: "解开", pinyin: "jiě kāi", meaning: "membuka ikatan / merungkai", sentence: "我终于解开了这道数学题的答案。" },
             { word: "疑问", pinyin: "yí wèn", meaning: "keraguan / soalan", sentence: "如果你有任何疑问，请举手发问。" },
             { word: "克服", pinyin: "kè fú", meaning: "mengatasi", sentence: "只要有恒心，我们就能克服所有困难。" },
-            { word: "系", pinyin: "jì", meaning: "mengikat", sentence: "出门前，一定要把鞋带系好。" }
+            { word: "系", pinyin: "jì", meaning: "mengikat", sentence: "出门前，一定要把鞋带系好。" },
+            { word: "抹", pinyin: "mǒ", meaning: "mengelap", sentence: "妈妈用布把桌子抹得干干净净。" },
+            { word: "茂密", pinyin: "mào mì", meaning: "lebat (pokok)", sentence: "我们在茂密的森林里迷路了。" },
+            { word: "鸣", pinyin: "míng", meaning: "berbunyi (burung/serangga)", sentence: "清晨，树上的小鸟在开心地鸣叫。" },
+            { word: "投入", pinyin: "tóu rù", meaning: "memberikan tumpuan sepenuhnya", sentence: "他非常投入地阅读这本故事书。" }
           ],
-          "第二单元 魔豆传心意": [
+          "第二单元 巧妙的道歉": [
             { word: "罐头", pinyin: "guàn tou", meaning: "tin (makanan)", sentence: "妈妈去超市买了几罐沙丁鱼罐头。" },
             { word: "良好", pinyin: "liáng hǎo", meaning: "baik", sentence: "我们要从小养成良好的阅读习惯。" },
             { word: "隔天", pinyin: "gé tiān", meaning: "keesokan harinya", sentence: "我昨天刚买的书，隔天就看完了。" },
@@ -513,9 +523,11 @@
             { word: "玩偶", pinyin: "wán ǒu", meaning: "anak patung", sentence: "这是我最喜欢的毛绒玩偶。" },
             { word: "介意", pinyin: "jiè yì", meaning: "keberatan / kisah", sentence: "我只是开个玩笑，请你不要介意。" },
             { word: "与众不同", pinyin: "yǔ zhòng bù tóng", meaning: "luar biasa / berbeza", sentence: "他的画作充满创意，看起来与众不同。" },
-            { word: "详细", pinyin: "xiáng xì", meaning: "terperinci", sentence: "请你详细地说明事情的经过。" }
+            { word: "详细", pinyin: "xiáng xì", meaning: "terperinci", sentence: "请你详细地说明事情的经过。" },
+            { word: "道歉", pinyin: "dào qiàn", meaning: "meminta maaf", sentence: "我因为迟到而向老师真诚地道歉。" },
+            { word: "标明", pinyin: "biāo míng", meaning: "menyatakan / menandakan", sentence: "地图上清楚地标明了学校的位置。" }
           ],
-          "第三单元 鸟儿筑巢": [
+          "第三单元 小动物的智慧": [
             { word: "衔", pinyin: "xián", meaning: "menggigit di mulut", sentence: "小鸟嘴里衔着树枝，准备去筑巢。" },
             { word: "承受", pinyin: "chéng shòu", meaning: "menanggung", sentence: "这座桥非常坚固，能承受很大的重量。" },
             { word: "羡慕", pinyin: "xiàn mù", meaning: "iri hati / kagum", sentence: "我很羡慕同学有一辆新自行车。" },
@@ -525,19 +537,30 @@
             { word: "刮风", pinyin: "guā fēng", meaning: "angin bertiup", sentence: "外面正在刮风下雨，大家尽量不要出门。" },
             { word: "缺少", pinyin: "quē shǎo", meaning: "kekurangan", sentence: "这道菜缺少了一点盐，味道不够好。" },
             { word: "坚固", pinyin: "jiān gù", meaning: "kukuh", sentence: "这栋房子建得非常坚固，不怕风吹雨打。" },
-            { word: "避开", pinyin: "bì kāi", meaning: "mengelak", sentence: "我们应该避开危险的建筑工地。" }
+            { word: "避开", pinyin: "bì kāi", meaning: "mengelak", sentence: "我们应该避开危险的建筑工地。" },
+            { word: "撑", pinyin: "chēng", meaning: "menyokong / menahan", sentence: "下雨了，我赶紧撑开雨伞。" },
+            { word: "不仅", pinyin: "bù jǐn", meaning: "bukan sahaja", sentence: "他不仅功课好，还会弹钢琴。" }
           ],
-          "第四单元 爸爸的大手": [
+          "第四单元 温暖的亲情": [
             { word: "废纸", pinyin: "fèi zhǐ", meaning: "kertas terpakai / buangan", sentence: "请把废纸丢进回收箱里。" },
             { word: "一眨眼", pinyin: "yī zhǎ yǎn", meaning: "sekelip mata", sentence: "一眨眼，小猫就不见了踪影。" },
             { word: "驴子", pinyin: "lǘ zi", meaning: "keldai", sentence: "农夫牵着一匹驴子在田里干活。" },
+            { word: "一匹驴子", pinyin: "yī pǐ lǘ zi", meaning: "seekor keldai", sentence: "农田里有一匹驴子在帮忙拉货。" },
             { word: "蚊子", pinyin: "wén zi", meaning: "nyamuk", sentence: "昨晚有蚊子飞进房间，吵得我睡不着。" },
             { word: "疲倦", pinyin: "pí juàn", meaning: "letih", sentence: "工作了一整天，爸爸感到非常疲倦。" },
             { word: "肩膀", pinyin: "jiān bǎng", meaning: "bahu", sentence: "弟弟靠在妈妈的肩膀上睡着了。" },
             { word: "扇子", pinyin: "shān zi", meaning: "kipas tangan", sentence: "奶奶用扇子轻轻地为我扇风。" },
             { word: "炎热", pinyin: "yán rè", meaning: "sangat panas", sentence: "在炎热的下午，喝一杯冰水最舒服了。" },
             { word: "损坏", pinyin: "sǔn huài", meaning: "rosak", sentence: "如果在图书馆借的书损坏了，是需要赔偿的。" },
-            { word: "修理", pinyin: "xiū lǐ", meaning: "membaiki", sentence: "工人们正在修理坏掉的红绿灯。" }
+            { word: "修理", pinyin: "xiū lǐ", meaning: "membaiki", sentence: "工人们正在修理坏掉的红绿灯。" },
+            { word: "粗糙", pinyin: "cū cāo", meaning: "kasar (permukaan)", sentence: "树干的表面摸起来非常粗糙。" },
+            { word: "一张百纳被", pinyin: "yī zhāng bǎi nà bèi", meaning: "selimut perca", sentence: "奶奶亲手缝制了一张百纳被给我。" },
+            { word: "碎布", pinyin: "suì bù", meaning: "kain perca", sentence: "妈妈用碎布做了一个可爱的小布偶。" },
+            { word: "裁缝", pinyin: "cái féng", meaning: "menjahit / tukang jahit", sentence: "这位老裁缝的手艺非常精湛。" },
+            { word: "针线", pinyin: "zhēn xiàn", meaning: "jarum dan benang", sentence: "妈妈用针线把破掉的衣服缝好了。" },
+            { word: "密密缝", pinyin: "mì mì féng", meaning: "menjahit dengan rapat", sentence: "奶奶为我密密缝制了一件新毛衣。" },
+            { word: "长者", pinyin: "zhǎng zhě", meaning: "orang tua", sentence: "我们应该尊敬和帮助长者。" },
+            { word: "深厚", pinyin: "shēn hòu", meaning: "mendalam (perasaan/persahabatan)", sentence: "我们俩有着深厚的友谊。" }
           ],
           "第五单元 飞跃的想象": [
             { word: "茂密", pinyin: "mào mì", meaning: "lebat (pokok/rambut)", sentence: "我们在茂密的森林里迷路了。" },
@@ -549,7 +572,19 @@
             { word: "规定", pinyin: "guī dìng", meaning: "peraturan / menetapkan", sentence: "学校规定学生必须穿整齐的校服。" },
             { word: "坚强", pinyin: "jiān qiáng", meaning: "kuat / tabah", sentence: "遇到困难时，我们必须保持坚强。" },
             { word: "丝带", pinyin: "sī dài", meaning: "reben", sentence: "妹妹的头上绑着一条粉红色的丝带。" },
-            { word: "骗", pinyin: "piàn", meaning: "menipu", sentence: "我们要做诚实的孩子，绝不骗人。" }
+            { word: "骗", pinyin: "piàn", meaning: "menipu", sentence: "我们要做诚实的孩子，绝不骗人。" },
+            { word: "五颜六色", pinyin: "wǔ yán liù sè", meaning: "berwarna-warni", sentence: "花园里开满了五颜六色的鲜花。" },
+            { word: "渐渐", pinyin: "jiàn jiàn", meaning: "beransur-ansur / perlahan-lahan", sentence: "天色渐渐暗了下来，我们要回家了。" },
+            { word: "盛", pinyin: "chéng", meaning: "mengisi (makanan/air)", sentence: "妈妈用碗盛了一碗热汤给我。" },
+            { word: "蒸", pinyin: "zhēng", meaning: "mengukus", sentence: "刚蒸好的包子散发着诱人的香味。" },
+            { word: "雨丝", pinyin: "yǔ sī", meaning: "hujan renyai", sentence: "细细的雨丝从天空中飘落下来。" },
+            { word: "顿时", pinyin: "dùn shí", meaning: "segera / serta-merta", sentence: "听到这个好消息，大家顿时欢呼起来。" },
+            { word: "干旱", pinyin: "gān hàn", meaning: "kemarau", sentence: "由于长期没有下雨，这片土地变得非常干旱。" },
+            { word: "剩", pinyin: "shèng", meaning: "tinggal / lebihan", sentence: "晚饭后，桌上只剩下几个空盘子。" },
+            { word: "飘", pinyin: "piāo", meaning: "terapung / melayang", sentence: "秋风吹过，落叶在空中飘舞。" },
+            { word: "欢呼", pinyin: "huān hū", meaning: "bersorak", sentence: "当我国选手赢得金牌时，全场观众热烈欢呼。" },
+            { word: "成群结队", pinyin: "chéng qún jié duì", meaning: "berkumpulan", sentence: "猴子们成群结队地在树林里寻找食物。" },
+            { word: "渴", pinyin: "kě", meaning: "dahaga", sentence: "跑完步后，我感到非常口渴。" }
           ],
           "第六单元 脑筋转一转": [
             { word: "楚国", pinyin: "chǔ guó", meaning: "Negara Chu (Zaman Purba)", sentence: "楚国是中国古代的一个国家。" },
@@ -561,7 +596,17 @@
             { word: "哑口无言", pinyin: "yǎ kǒu wú yán", meaning: "terdiam (tidak dapat berkata-kata)", sentence: "面对铁一般的证据，小偷顿时哑口无言。" },
             { word: "随便", pinyin: "suí biàn", meaning: "sesuka hati / sebarangan", sentence: "我们不可以随便拿别人的东西。" },
             { word: "弄错", pinyin: "nòng cuò", meaning: "salah buat / tersilap", sentence: "对不起，我弄错了你的名字。" },
-            { word: "永远", pinyin: "yǒng yuǎn", meaning: "selama-lamanya", sentence: "我会永远记住老师的教诲。" }
+            { word: "永远", pinyin: "yǒng yuǎn", meaning: "selama-lamanya", sentence: "我会永远记住老师的教诲。" },
+            { word: "斑纹", pinyin: "bān wén", meaning: "belang / corak", sentence: "老虎身上有许多黑色的斑纹。" },
+            { word: "突然", pinyin: "tū rán", meaning: "tiba-tiba", sentence: "天空中突然下起了倾盆大雨。" },
+            { word: "幸运", pinyin: "xìng yùn", meaning: "bertuah", sentence: "我非常幸运地抽中了这次活动的大奖。" },
+            { word: "并", pinyin: "bìng", meaning: "dan / sama sekali (digunakan dgn tidak)", sentence: "这个问题并没有你想象中那么复杂。" },
+            { word: "吓晕", pinyin: "xià yūn", meaning: "pengsan ketakutan", sentence: "他看到蛇，差点吓晕过去。" },
+            { word: "屁滚尿流", pinyin: "pì gǔn niào liú", meaning: "lari lintang-pukang kerana ketakutan", sentence: "小偷看到警察来了，吓得屁滚尿流地逃跑了。" },
+            { word: "忍不住", pinyin: "rěn bú zhù", meaning: "tidak dapat menahan", sentence: "看到他滑稽的样子，大家都忍不住大笑。" },
+            { word: "一模一样", pinyin: "yī mú yī yàng", meaning: "tepat sama / seiras", sentence: "这对双胞胎长得一模一样，很难分辨。" },
+            { word: "草丛", pinyin: "cǎo cóng", meaning: "semak samun", sentence: "一条蛇偷偷地溜进了草丛里。" },
+            { word: "睁", pinyin: "zhēng", meaning: "membuka mata", sentence: "早晨，我慢慢地睁开眼睛迎接新的一天。" }
           ],
           "第七单元 自得其乐": [
             { word: "朗读", pinyin: "lǎng dú", meaning: "membaca dengan kuat", sentence: "清晨，同学们在课室里大声朗读课文。" },
@@ -573,7 +618,20 @@
             { word: "思考", pinyin: "sī kǎo", meaning: "berfikir", sentence: "遇到难题时，我们要冷静思考。" },
             { word: "曾经", pinyin: "céng jīng", meaning: "pernah", sentence: "我曾经参加过全校演讲比赛。" },
             { word: "绝对", pinyin: "jué duì", meaning: "pasti / mutlak", sentence: "这件事我绝对没有告诉别人。" },
-            { word: "承认", pinyin: "chéng rèn", meaning: "mengakui", sentence: "做错事后，应该勇敢承认并道歉。" }
+            { word: "承认", pinyin: "chéng rèn", meaning: "mengakui", sentence: "做错事后，应该勇敢承认并道歉。" },
+            { word: "簿子", pinyin: "bù zi", meaning: "buku latihan", sentence: "请把功课写在华文练习簿子里。" },
+            { word: "撕", pinyin: "sī", meaning: "mengkoyak", sentence: "他不小心把书页撕破了。" },
+            { word: "试", pinyin: "shì", meaning: "mencuba", sentence: "我想试一试这件新衣服合不合身。" },
+            { word: "试卷", pinyin: "shì juàn", meaning: "kertas peperiksaan", sentence: "老师正在批改我们的数学试卷。" },
+            { word: "歪斜", pinyin: "wāi xié", meaning: "senget", sentence: "那幅画挂得有些歪斜，请把它扶正。" },
+            { word: "浮", pinyin: "fú", meaning: "terapung", sentence: "木板可以在水面上浮起来。" },
+            { word: "淹没", pinyin: "yān mò", meaning: "menenggelamkan", sentence: "连日大雨导致河水泛滥，淹没了许多农田。" },
+            { word: "推", pinyin: "tuī", meaning: "menolak", sentence: "请用力推开这扇沉重的大门。" },
+            { word: "遇到", pinyin: "yù dào", meaning: "bertemu / terjumpa", sentence: "我在超市里偶然遇到了小学同学。" },
+            { word: "哪怕", pinyin: "nǎ pà", meaning: "walaupun", sentence: "哪怕遇到困难，我也不会轻易放弃。" },
+            { word: "虽然", pinyin: "suī rán", meaning: "walaupun", sentence: "虽然今天下雨，我们还是照常去上学。" },
+            { word: "悲伤", pinyin: "bēi shāng", meaning: "sedih", sentence: "听到这个不幸的消息，他感到非常悲伤。" },
+            { word: "木棍", pinyin: "mù gùn", meaning: "batang kayu", sentence: "爷爷拄着一根木棍在公园散步。" }
           ],
           "第八单元 科技发展真迅速": [
             { word: "科技", pinyin: "kē jì", meaning: "sains dan teknologi", sentence: "现代科技的发展给生活带来了很多便利。" },
@@ -585,7 +643,17 @@
             { word: "距离", pinyin: "jù lí", meaning: "jarak", sentence: "我家距离学校只有十分钟的路程。" },
             { word: "缩短", pinyin: "suō duǎn", meaning: "memendekkan", sentence: "飞机的发明缩短了城市之间的距离。" },
             { word: "无论", pinyin: "wú lùn", meaning: "tidak kira", sentence: "无论天气多坏，邮递员都会准时送信。" },
-            { word: "创造", pinyin: "chuàng zào", meaning: "mencipta", sentence: "人类用智慧创造了许多伟大的发明。" }
+            { word: "创造", pinyin: "chuàng zào", meaning: "mencipta", sentence: "人类用智慧创造了许多伟大的发明。" },
+            { word: "设计", pinyin: "shè jì", meaning: "rekaan / mereka", sentence: "这位建筑师设计了一座非常有特色的建筑物。" },
+            { word: "输入", pinyin: "shū rù", meaning: "memasukkan (data)", sentence: "请在提款机上输入你的密码。" },
+            { word: "程序", pinyin: "chéng xù", meaning: "program / atur cara", sentence: "电脑里的程序出现了错误，需要重新安装。" },
+            { word: "零件", pinyin: "líng jiàn", meaning: "alat ganti / komponen", sentence: "这台机器需要更换几个损坏的零件。" },
+            { word: "骨头", pinyin: "gǔ tou", meaning: "tulang", sentence: "小狗在院子里啃着一块骨头。" },
+            { word: "器官", pinyin: "qī guān", meaning: "organ", sentence: "心脏是人体非常重要的器官。" },
+            { word: "残疾", pinyin: "cán jí", meaning: "cacat / kurang upaya", sentence: "社会应该给予残疾人士更多的关爱和帮助。" },
+            { word: "驾", pinyin: "jià", meaning: "memandu", sentence: "爸爸每天驾车送我去上学。" },
+            { word: "购买", pinyin: "gòu mǎi", meaning: "membeli", sentence: "妈妈上网购买了一些新鲜的水果。" },
+            { word: "激发", pinyin: "jī fā", meaning: "merangsang / membangkitkan", sentence: "老师的故事激发了同学们对科学的兴趣。" }
           ],
           "第九单元 创造历史的人": [
             { word: "历史", pinyin: "lì shǐ", meaning: "sejarah", sentence: "马六甲是一座充满历史故事的古城。" },
@@ -597,7 +665,21 @@
             { word: "宫殿", pinyin: "gōng diàn", meaning: "istana", sentence: "我们在博物馆里看到了古代宫殿的模型。" },
             { word: "雄伟", pinyin: "xióng wěi", meaning: "megah", sentence: "长城是世界上最雄伟的建筑之一。" },
             { word: "智慧", pinyin: "zhì huì", meaning: "kebijaksanaan", sentence: "这本书充满了古人的生活智慧。" },
-            { word: "赞叹", pinyin: "zàn tàn", meaning: "kagum / memuji", sentence: "精彩的魔术表演让观众赞叹不已。" }
+            { word: "赞叹", pinyin: "zàn tàn", meaning: "kagum / memuji", sentence: "精彩的魔术表演让观众赞叹不已。" },
+            { word: "扁担", pinyin: "biǎn dàn", meaning: "pengandar", sentence: "老农夫挑着扁担在田里干活。" },
+            { word: "灭", pinyin: "miè", meaning: "memadamkan", sentence: "消防员迅速把大火扑灭了。" },
+            { word: "产生", pinyin: "chǎn shēng", meaning: "menghasilkan", sentence: "这两种化学物质混合后会产生毒气。" },
+            { word: "阅读", pinyin: "yuè dú", meaning: "membaca", sentence: "阅读课外读物能增加我们的知识。" },
+            { word: "圈", pinyin: "quān", meaning: "bulatan / membuat bulatan", sentence: "老师在黑板上画了一个大圆圈。" },
+            { word: "代替", pinyin: "tì dài", meaning: "menggantikan", sentence: "机器逐渐代替了部分人工劳动。" },
+            { word: "试验", pinyin: "shì yàn", meaning: "eksperimen / menguji", sentence: "科学家在实验室里进行了一项新的试验。" },
+            { word: "煮", pinyin: "zhǔ", meaning: "memasak", sentence: "妈妈在厨房里煮了一顿丰盛的晚餐。" },
+            { word: "浆", pinyin: "jiāng", meaning: "cecair pekat", sentence: "工人把纸浆倒进模具里制作纸张。" },
+            { word: "席", pinyin: "xí", meaning: "tikar / tempat duduk", sentence: "大家在草地上铺了一张草席野餐。" },
+            { word: "晾", pinyin: "liàng", meaning: "menjemur", sentence: "妈妈把洗好的衣服晾在阳台上。" },
+            { word: "记录", pinyin: "jì lù", meaning: "mencatat", sentence: "请用笔记录下老师今天说的重点。" },
+            { word: "省", pinyin: "shěng", meaning: "menjimatkan", sentence: "我们要从小养成节省水电的好习惯。" },
+            { word: "传承", pinyin: "chuán chéng", meaning: "mewarisi", sentence: "我们有责任传承优秀的中华文化。" }
           ],
           "第十单元 美丽的传说": [
             { word: "传说", pinyin: "chuán shuō", meaning: "legenda", sentence: "关于这座山，有一个非常古老的传说。" },
@@ -609,7 +691,11 @@
             { word: "偷", pinyin: "tōu", meaning: "mencuri", sentence: "小狗趁我们不注意，偷吃了桌上的肉。" },
             { word: "飘", pinyin: "piāo", meaning: "terapung / melayang", sentence: "五颜六色的气球在天空中飘荡。" },
             { word: "仙女", pinyin: "xiān nǚ", meaning: "bidadari", sentence: "故事里的仙女长得非常美丽。" },
-            { word: "永远", pinyin: "yǒng yuǎn", meaning: "selama-lamanya", sentence: "童年的美好记忆将永远留在我心中。" }
+            { word: "永远", pinyin: "yǒng yuǎn", meaning: "selama-lamanya", sentence: "童年的美好记忆将永远留在我心中。" },
+            { word: "建", pinyin: "jiàn", meaning: "membina", sentence: "工人们正在这里建一座新的大桥。" },
+            { word: "贪", pinyin: "tān", meaning: "tamak", sentence: "做人不能太贪心，要懂得满足。" },
+            { word: "吞", pinyin: "tūn", meaning: "menelan", sentence: "大蛇把一只小老鼠整个吞了下去。" },
+            { word: "妻子", pinyin: "qī zi", meaning: "isteri", sentence: "嫦娥是后羿的妻子。" }
           ],
           "第十一单元 语文的魅力": [
             { word: "语文", pinyin: "yǔ wén", meaning: "bahasa", sentence: "我们要用心学习华文这门优美的语文。" },
@@ -621,7 +707,20 @@
             { word: "词汇", pinyin: "cí huì", meaning: "kosa kata", sentence: "通过阅读，我认识了许多新的词汇。" },
             { word: "掌握", pinyin: "zhǎng wò", meaning: "menguasai", sentence: "多练习才能真正掌握一门语言。" },
             { word: "沟通", pinyin: "gōu tōng", meaning: "berkomunikasi", sentence: "良好的沟通能减少朋友之间的误会。" },
-            { word: "乐趣", pinyin: "lè qù", meaning: "keseronokan", sentence: "在学习中寻找乐趣，会让你更加进步。" }
+            { word: "乐趣", pinyin: "lè qù", meaning: "keseronokan", sentence: "在学习中寻找乐趣，会让你更加进步。" },
+            { word: "一首", pinyin: "yī shǒu", meaning: "sebuah (penjodoh bilangan lagu/sajak)", sentence: "我在音乐课上学唱了一首新歌。" },
+            { word: "宋朝", pinyin: "sòng cháo", meaning: "Dinasti Song", sentence: "宋朝是中国历史上一个重要的朝代。" },
+            { word: "汪洋", pinyin: "wāng yáng", meaning: "lautan luas", sentence: "渔船在汪洋大海中航行。" },
+            { word: "任何", pinyin: "rèn hé", meaning: "apa-apa sahaja / sebarang", sentence: "遇到任何问题都可以向老师请教。" },
+            { word: "诗", pinyin: "shī", meaning: "sajak / puisi", sentence: "李白是中国著名的诗人，写了很多好诗。" },
+            { word: "作者", pinyin: "zuò zhě", meaning: "penulis", sentence: "这本小说的作者非常有名。" },
+            { word: "代表", pinyin: "dài biǎo", meaning: "mewakili / wakil", sentence: "班长代表全班同学向老师献上教师节礼物。" },
+            { word: "愁", pinyin: "chóu", meaning: "risau / sedih", sentence: "他为了考试成绩不好而发愁。" },
+            { word: "如果", pinyin: "rú guǒ", meaning: "jika", sentence: "如果明天不下雨，我们就去踢足球。" },
+            { word: "缺少", pinyin: "quē shǎo", meaning: "kekurangan", sentence: "我们不能缺少水分，要多喝水。" },
+            { word: "不仅", pinyin: "bù jǐn", meaning: "bukan sahaja", sentence: "他不仅聪明，而且非常用功。" },
+            { word: "心血", pinyin: "xīn xuè", meaning: "usaha / titik peluh", sentence: "这幅画花了他很多心血才完成。" },
+            { word: "部首", pinyin: "bù shǒu", meaning: "radikal (komponen watak Cina)", sentence: "学习部首有助于我们记忆汉字。" }
           ],
           "第十二单元 传统文化是瑰宝": [
             { word: "传统", pinyin: "chuán tǒng", meaning: "tradisional", sentence: "旗袍是中国女性的传统服装。" },
@@ -633,7 +732,19 @@
             { word: "团聚", pinyin: "tuán jù", meaning: "berkumpul", sentence: "中秋节是家人团聚赏月的好日子。" },
             { word: "拜年", pinyin: "bài nián", meaning: "melawat pada tahun baru", sentence: "初一早上，我们去亲戚家拜年。" },
             { word: "祝福", pinyin: "zhù fú", meaning: "berkat / ucapan", sentence: "朋友们纷纷送上生日祝福。" },
-            { word: "传承", pinyin: "chuán chéng", meaning: "mewarisi", sentence: "我们要努力传承优秀的中华文化。" }
+            { word: "传承", pinyin: "chuán chéng", meaning: "mewarisi", sentence: "我们要努力传承优秀的中华文化。" },
+            { word: "文房四宝", pinyin: "wén fáng sì bǎo", meaning: "Empat Harta Bilik Kajian (berus, dakwat, kertas, batu dakwat)", sentence: "笔墨纸砚被称为文房四宝。" },
+            { word: "砚", pinyin: "yàn", meaning: "batu dakwat", sentence: "书法家在砚台上磨墨。" },
+            { word: "磨", pinyin: "mó", meaning: "mengasah / menggosok", sentence: "妈妈用刀石把菜刀磨得非常锋利。" },
+            { word: "墨", pinyin: "mò", meaning: "dakwat", sentence: "他不小心把墨汁弄到了衣服上。" },
+            { word: "文雅", pinyin: "wén yǎ", meaning: "sopan / halus", sentence: "她的举止非常文雅，受人喜欢。" },
+            { word: "甚至", pinyin: "shèn zhì", meaning: "malah", sentence: "他病得很重，甚至无法下床。" },
+            { word: "胸有成竹", pinyin: "xiōng yǒu chéng zhú", meaning: "yakin dan bersedia", sentence: "面对比赛，他胸有成竹，毫不紧张。" },
+            { word: "距离", pinyin: "jù lí", meaning: "jarak", sentence: "我家距离学校只有十分钟的步行路程。" },
+            { word: "挥", pinyin: "huī", meaning: "melambai / menghayun", sentence: "他向我们挥挥手，道别了。" },
+            { word: "龙飞凤舞", pinyin: "lóng fēi fèng wǔ", meaning: "tulisan yang cantik dan bertenaga", sentence: "他的书法写得龙飞凤舞，气势非凡。" },
+            { word: "篇", pinyin: "piān", meaning: "penjodoh bilangan untuk artikel/karangan", sentence: "我写了一篇文章投稿到校刊。" },
+            { word: "优美", pinyin: "yōu měi", meaning: "indah", sentence: "这首曲子的旋律十分优美动听。" }
           ],
           "第十三单元 汉字真有趣": [
             { word: "凡是", pinyin: "fán shì", meaning: "semua / tiap-tiap", sentence: "凡是好学生都应该按时完成功课。" }, 
@@ -641,10 +752,21 @@
             { word: "记录", pinyin: "jì lù", meaning: "mencatat / rekod", sentence: "老师把我们的考试成绩记录在簿子里。" }, 
             { word: "抛", pinyin: "pāo", meaning: "membaling / mencampak", sentence: "哥哥把皮球高高地抛向天空。" }, 
             { word: "扁", pinyin: "biǎn", meaning: "leper / kemik", sentence: "这个皮球没气了，变得扁扁的。" },
+            { word: "介绍", pinyin: "jiè shào", meaning: "memperkenalkan", sentence: "我向新同学介绍学校的图书馆。" }, 
+            { word: "建议", pinyin: "jiàn yì", meaning: "mencadangkan / cadangan", sentence: "我建议大家周末一起去公园骑自行车。" }, 
+            { word: "顿时", pinyin: "dùn shí", meaning: "segera / serta-merta", sentence: "听到这个好消息，大家顿时欢呼起来。" }, 
+            { word: "方法", pinyin: "fāng fǎ", meaning: "cara / kaedah", sentence: "我们要用正确的方法来学习华语。" }, 
+            { word: "精美", pinyin: "jīng měi", meaning: "cantik / halus", sentence: "姐姐送给我一个非常精美的生日礼物。" },
             { word: "禾苗", pinyin: "hé miáo", meaning: "anak benih padi", sentence: "农夫在田里辛勤地照顾绿油油的禾苗。" }, 
             { word: "初", pinyin: "chū", meaning: "awal / permulaan", sentence: "年初的时候，我们一家人去旅行。" }, 
             { word: "送爽", pinyin: "sòng shuǎng", meaning: "membawa kesegaran", sentence: "秋风送爽，正是去郊游的好时候。" }, 
-            { word: "北斗七星", pinyin: "běi dǒu qī xīng", meaning: "Buruj Biduk", sentence: "晚上，我们在天空中寻找北斗七星。" }
+            { word: "北斗七星", pinyin: "běi dǒu qī xīng", meaning: "Buruj Biduk", sentence: "晚上，我们在天空中寻找北斗七星。" }, 
+            { word: "插秧", pinyin: "chā yāng", meaning: "menanam padi", sentence: "农民们在水田里忙着插秧。" },
+            { word: "同心", pinyin: "tóng xīn", meaning: "sehati / bersatu padu", sentence: "只要我们同心协力，就能完成这项任务。" }, 
+            { word: "组队", pinyin: "zǔ duì", meaning: "membentuk pasukan", sentence: "我们组队参加了学校的拔河比赛。" }, 
+            { word: "团结", pinyin: "tuán jié", meaning: "bersatu padu", sentence: "同学们要互相帮助，团结一致。" }, 
+            { word: "耀眼", pinyin: "yào yǎn", meaning: "menyilaukan / terang", sentence: "太阳发出耀眼的光芒，让人睁不开眼。" }, 
+            { word: "光明", pinyin: "guāng míng", meaning: "cahaya / cerah", sentence: "早晨太阳出来了，大地一片光明。" }
           ],
           "第十四单元 读故事，学成语": [
             { word: "贼", pinyin: "zéi", meaning: "pencuri", sentence: "警察很快就把那个做坏事的贼抓住了。" }, 
@@ -653,7 +775,10 @@
             { word: "喘口气", pinyin: "chuǎn kǒu qì", meaning: "berehat sebentar / menarik nafas", sentence: "我们跑了很久，停下来喘口气吧。" }, 
             { word: "塞住", pinyin: "sāi zhù", meaning: "menutup / menyumbat", sentence: "他用棉花把耳朵塞住，不想听外面的吵闹声。" },
             { word: "傻事", pinyin: "shǎ shì", meaning: "perkara bodoh", sentence: "掩耳盗铃是一件非常好笑的傻事。" }, 
-            { word: "犯", pinyin: "fàn", meaning: "melakukan kesalahan", sentence: "既然犯了错，就应该勇敢承认并改过。" }
+            { word: "犯", pinyin: "fàn", meaning: "melakukan kesalahan", sentence: "既然犯了错，就应该勇敢承认并改过。" },
+            { word: "决定", pinyin: "jué dìng", meaning: "keputusan / memutuskan", sentence: "爸爸决定明天带我们全家去海边玩。" }, 
+            { word: "阻止", pinyin: "zú zhǐ", meaning: "menghalang", sentence: "警察成功阻止了小偷逃跑。" }, 
+            { word: "掩盖", pinyin: "yǎn gài", meaning: "menutup / menyembunyikan", sentence: "下雪后，白雪掩盖了整片草地。" }
           ],
           "第十五单元 生活处处有惊喜": [
             { word: "周末", pinyin: "zhōu mò", meaning: "hujung minggu", sentence: "这个周末，我打算去图书馆看书。" }, 
@@ -662,7 +787,10 @@
             { word: "说谎", pinyin: "shuō huǎng", meaning: "berbohong", sentence: "我们要做诚实的孩子，绝对不能说谎。" }, 
             { word: "太棒了", pinyin: "tài bàng le", meaning: "hebatnya / bagusnya", sentence: "你这次考试拿了满分，真是太棒了！" },
             { word: "飞扬", pinyin: "fēi yáng", meaning: "berterbangan", sentence: "一阵风吹来，地上的落叶随风飞扬。" }, 
-            { word: "耀眼", pinyin: "yào yǎn", meaning: "menyilaukan", sentence: "舞台上的灯光非常耀眼。" }
+            { word: "耀眼", pinyin: "yào yǎn", meaning: "menyilaukan", sentence: "舞台上的灯光非常耀眼。" },
+            { word: "摇动", pinyin: "yáo dòng", meaning: "bergoyang / menggoncang", sentence: "微风吹过，树枝轻轻地摇动。" }, 
+            { word: "着迷", pinyin: "zháo mí", meaning: "terpesona / asyik", sentence: "这本故事书太有趣了，看得我十分着迷。" }, 
+            { word: "探看", pinyin: "tàn kàn", meaning: "menjenguk / melihat", sentence: "小猫悄悄地从门缝里探看外面的情况。" }
           ],
           "第十六单元 童话故事会": [
             { word: "派", pinyin: "pài", meaning: "menghantar / mengutus", sentence: "老师派我去参加全校讲故事比赛。" }, 
@@ -670,7 +798,11 @@
             { word: "努力", pinyin: "nǔ lì", meaning: "berusaha", sentence: "只要努力学习，成绩一定会不断进步。" }, 
             { word: "英勇", pinyin: "yīng yǒng", meaning: "berani", sentence: "英勇的消防员冲进火场救出了小女孩。" }, 
             { word: "弓箭", pinyin: "gōng jiàn", meaning: "busur dan anak panah", sentence: "猎人拿着弓箭走进森林里打猎。" },
-            { word: "褪色", pinyin: "tuì shǎi", meaning: "luntur warna", sentence: "这件衣服洗了很多次，已经严重褪色了。" }
+            { word: "褪色", pinyin: "tuì shǎi", meaning: "luntur warna", sentence: "这件衣服洗了很多次，已经严重褪色了。" },
+            { word: "你争我抢", pinyin: "nǐ zhēng wǒ qiǎng", meaning: "berebut-rebut", sentence: "食物一端上桌，孩子们就你争我抢地吃起来。" }, 
+            { word: "心花怒放", pinyin: "xīn huā nù fàng", meaning: "sangat gembira", sentence: "听到要去游乐园玩，弟弟高兴得心花怒放。" }, 
+            { word: "哑然大笑", pinyin: "yǎ rán dà xiào", meaning: "ketawa terbahak-bahak", sentence: "看到小丑滑稽的动作，观众们都忍不住哑然大笑。" }, 
+            { word: "美好", pinyin: "měi hǎo", meaning: "indah / bagus", sentence: "我们的童年充满了许多美好的回忆。" }
           ],
           "第十七单元 真正的友情": [
             { word: "优良", pinyin: "yōu liáng", meaning: "cemerlang / baik", sentence: "他是一个品学兼优，成绩优良的好学生。" }, 
@@ -679,32 +811,65 @@
             { word: "拳头", pinyin: "quán tóu", meaning: "penumbuk", sentence: "他生气地握紧拳头，一句话也不说。" }, 
             { word: "罚", pinyin: "fá", meaning: "mendenda / hukum", sentence: "弟弟因为做错事，被妈妈罚站十分钟。" },
             { word: "不安", pinyin: "bù ān", meaning: "gelisah / tidak tenang", sentence: "做错事后，他的心里感到非常不安。" }, 
-            { word: "后悔", pinyin: "hòu huǐ", meaning: "menyesal", sentence: "我很后悔昨天没有听妈妈的话。" }
+            { word: "后悔", pinyin: "hòu huǐ", meaning: "menyesal", sentence: "我很后悔昨天没有听妈妈的话。" },
+            { word: "悲哀", pinyin: "bēi āi", meaning: "sedih / pilu", sentence: "听到小狗过世的消息，她感到十分悲哀。" }, 
+            { word: "心烦", pinyin: "xīn fán", meaning: "rasa rungsing / bimbang", sentence: "这道题太难了，做得我有些心烦。" }, 
+            { word: "忌妒", pinyin: "jì dù", meaning: "cemburu", sentence: "我们不应该忌妒别人的成功，而是要向他们学习。" }
           ],
           "第十八单元 自然的规律": [
             { word: "压力", pinyin: "yā lì", meaning: "tekanan", sentence: "考试快到了，他感到有一点学习压力。" }, 
             { word: "高峰", pinyin: "gāo fēng", meaning: "puncak", sentence: "登山者坚持不懈，终于爬上了这座山的高峰。" }, 
             { word: "秩序井然", pinyin: "zhì xù jǐng rán", meaning: "tersusun rapi", sentence: "大家都排队上巴士，现场秩序井然。" }, 
             { word: "忍受", pinyin: "rěn shòu", meaning: "menahan / bersabar", sentence: "在太阳底下站了那么久，他实在无法忍受了。" }, 
+            { word: "平凡", pinyin: "píng fán", meaning: "biasa", sentence: "虽然他只是个平凡的人，却做了很多伟大的好事。" },
+            { word: "守护", pinyin: "shǒu hù", meaning: "menjaga / melindungi", sentence: "士兵们日夜守护着国家的安全。" }, 
+            { word: "默默", pinyin: "mò mò", meaning: "secara diam-diam", sentence: "妈妈每天默默地为我们准备丰富的早餐。" }, 
+            { word: "挺胸", pinyin: "tǐng xiōng", meaning: "membusungkan dada", sentence: "士兵们抬头挺胸地向前走。" }, 
+            { word: "光明", pinyin: "guāng míng", meaning: "cahaya / kecerahan", sentence: "只要肯努力，未来的前途一片光明。" },
             { word: "万丈阳光", pinyin: "wàn zhàng yáng guāng", meaning: "cahaya matahari yang terang", sentence: "早晨，万丈阳光照亮了整个美丽的大地。" }, 
             { word: "啄木鸟", pinyin: "zhuó mù niǎo", meaning: "burung belatuk", sentence: "啄木鸟在树干上捉虫，就像树木的医生。" }, 
-            { word: "猫头鹰", pinyin: "māo tóu yīng", meaning: "burung hantu", sentence: "猫头鹰喜欢在夜晚出来捕捉老鼠。" }
+            { word: "猫头鹰", pinyin: "māo tóu yīng", meaning: "burung hantu", sentence: "猫头鹰喜欢在夜晚出来捕捉老鼠。" },
+            { word: "巡视", pinyin: "xún shì", meaning: "meronda / memeriksa", sentence: "警察每天在住宅区巡视，保护大家的安全。" }, 
+            { word: "产卵", pinyin: "chǎn luǎn", meaning: "bertelur", sentence: "海龟慢慢爬上海滩，准备挖坑产卵。" },
+            { word: "解释", pinyin: "jiě shì", meaning: "menerangkan", sentence: "老师耐心地向我们解释这篇课文的意思。" }, 
+            { word: "自然", pinyin: "zì rán", meaning: "semula jadi", sentence: "这里的自然风景非常美丽，吸引了很多游客。" }, 
+            { word: "日正当空", pinyin: "rì zhèng dàng kōng", meaning: "matahari tegak di kepala / waktu tengah hari", sentence: "中午日正当空，天气非常炎热。" }, 
+            { word: "飞禽走兽", pinyin: "fēi qín zǒu shòu", meaning: "burung dan binatang buas", sentence: "森林里住着各种各样的飞禽走兽。" }, 
+            { word: "日落西山", pinyin: "rì luò xī shān", meaning: "matahari terbenam", sentence: "日落西山的时候，农夫才慢慢走回家。" }
           ],
           "第十九单元 站在高楼看世界": [
             { word: "长颈鹿", pinyin: "cháng jǐng lù", meaning: "zirafah", sentence: "动物园里的长颈鹿正在吃树顶上的叶子。" }, 
             { word: "预测", pinyin: "yù cè", meaning: "meramal", sentence: "气象局预测明天下午会下大雨。" }, 
             { word: "仿佛", pinyin: "fǎng fú", meaning: "seolah-olah", sentence: "天上的白云仿佛是一群可爱的小白羊。" }, 
             { word: "横越", pinyin: "héng yuè", meaning: "merentasi / melintasi", sentence: "这座大桥横越了一条宽阔的河流。" }, 
-            { word: "兴隆", pinyin: "xīng lóng", meaning: "makmur / maju", sentence: "这家餐厅的食物很好吃，所以生意非常兴隆。" }
+            { word: "兴隆", pinyin: "xīng lóng", meaning: "makmur / maju", sentence: "这家餐厅的食物很好吃，所以生意非常兴隆。" },
+            { word: "热情", pinyin: "rè qíng", meaning: "bersemangat / mesra", sentence: "岛上的居民非常热情地欢迎我们。" }, 
+            { word: "雄伟", pinyin: "xióng wěi", meaning: "megah / agung", sentence: "吉隆坡的双峰塔看起来非常雄伟壮观。" }, 
+            { word: "启用", pinyin: "qǐ yòng", meaning: "mula digunakan", sentence: "新建成的图书馆将在下个月正式启用。" }, 
+            { word: "未来", pinyin: "wèi lái", meaning: "masa depan", sentence: "只要努力学习，我们的未来一定会很美好。" }, 
+            { word: "高入云天", pinyin: "gāo rù yún tiān", meaning: "tinggi menyentuh awan", sentence: "这座高入云天的大楼是城市的标志。" }
           ],
           "第二十单元 特别的体验": [
             { word: "圣诞", pinyin: "shèng dàn", meaning: "Krismas", sentence: "圣诞节到了，我们收到了很多惊喜礼物。" }, 
             { word: "捐出", pinyin: "juān chū", meaning: "mendermakan", sentence: "他把自己的零用钱捐出来帮助穷苦的人。" }, 
             { word: "感染", pinyin: "gǎn rǎn", meaning: "terjangkit / terpengaruh", sentence: "他那开心的笑声感染了周围的每一个人。" }, 
             { word: "鼻子一酸", pinyin: "bí zi yī suān", meaning: "berasa sedih / terharu", sentence: "听到这个感人的故事，我忍不住鼻子一酸。" }, 
+            { word: "优美", pinyin: "yōu měi", meaning: "indah / cantik", sentence: "姐姐在舞台上跳出了优美的舞蹈。" },
+            { word: "特别", pinyin: "tè bié", meaning: "istimewa", sentence: "今年的生日蛋糕是我亲手做的，非常特别。" }, 
+            { word: "掌声", pinyin: "zhǎng shēng", meaning: "tepukan", sentence: "表演结束后，台下响起了热烈的掌声。" }, 
+            { word: "礼袋", pinyin: "lǐ dài", meaning: "beg hadiah", sentence: "老师把精美的礼袋送给表现好的同学。" }, 
+            { word: "期待", pinyin: "qí dài", meaning: "mengharapkan / menantikan", sentence: "我非常期待即将到来的学校长假。" }, 
+            { word: "感动", pinyin: "gǎn dòng", meaning: "terharu", sentence: "妈妈无私的爱，让我深深地感动。" },
             { word: "赚", pinyin: "zhuàn", meaning: "memperoleh keuntungan / mendapat duit", sentence: "他通过帮忙卖旧报纸赚了一点零用钱。" }, 
             { word: "上网", pinyin: "shàng wǎng", meaning: "melayari internet", sentence: "哥哥经常上网查找写作文的资料。" }, 
-            { word: "州", pinyin: "zhōu", meaning: "negeri", sentence: "柔佛是马来西亚南部的一个州。" }
+            { word: "州", pinyin: "zhōu", meaning: "negeri", sentence: "柔佛是马来西亚南部的一个州。" },
+            { word: "红砖绿瓦", pinyin: "hóng zhuān lǜ wǎ", meaning: "bata merah dan genting hijau", sentence: "这座老庙宇红砖绿瓦，看起来非常有特色。" }, 
+            { word: "消毒", pinyin: "xiāo dú", meaning: "membasmi kuman", sentence: "医院里每天都会进行消毒，以保持干净。" },
+            { word: "帐篷", pinyin: "zhàng péng", meaning: "khemah", sentence: "露营的时候，我们大家一起动手搭帐篷。" }, 
+            { word: "选择", pinyin: "xuǎn zé", meaning: "memilih / pilihan", sentence: "我需要在两件衣服中选择一件买下来。" }, 
+            { word: "允许", pinyin: "yǔn xǔ", meaning: "membenarkan", sentence: "未经老师的允许，我们不能随便离开课室。" }, 
+            { word: "湖光山色", pinyin: "hú guāng shān sè", meaning: "pemandangan tasik dan gunung yang indah", sentence: "这里的湖光山色美得就像一幅画。" }, 
+            { word: "成群结队", pinyin: "chéng qún jié duì", meaning: "berkumpulan", sentence: "猴子们成群结队地在树林里寻找食物。" }
           ]
         };
 
@@ -885,38 +1050,35 @@
         // ==========================================
         
         // 监听目录页的隐藏拼音开关，实现全局联动
-        function toggleGlobalPinyin(checked) {
+        window.toggleGlobalPinyin = function(checked) {
             hidePinyinChallenge = checked;
             
             document.querySelectorAll('.pinyin-checkbox').forEach(cb => {
                 if(cb.checked !== checked) cb.checked = checked;
             });
             
-            document.querySelectorAll('.pinyin-toggle-bg').forEach(bg => {
+            const bg = document.getElementById('globalPinyinToggleBg');
+            const dot = document.getElementById('globalPinyinToggleDot');
+            
+            if (bg && dot) {
                 if (checked) {
                     bg.classList.replace('bg-slate-300', 'bg-primary');
                     bg.classList.replace('dark:bg-slate-600', 'bg-primary');
+                    dot.classList.replace('translate-x-1', 'translate-x-6');
                 } else {
                     bg.classList.replace('bg-primary', 'bg-slate-300');
                     if(!bg.classList.contains('bg-slate-300')) bg.classList.add('bg-slate-300', 'dark:bg-slate-600');
-                }
-            });
-            
-            document.querySelectorAll('.pinyin-toggle-dot').forEach(dot => {
-                if (checked) {
-                    dot.classList.replace('translate-x-1', 'translate-x-6');
-                } else {
                     dot.classList.replace('translate-x-6', 'translate-x-1');
                 }
-            });
+            }
             
             // 自动刷新正在查看的列表以隐藏/显示拼音
-            if (!document.getElementById('view-wordlist').classList.contains('hidden')) {
+            if (document.getElementById('view-wordlist') && !document.getElementById('view-wordlist').classList.contains('hidden')) {
                 openChapter(activeChapter);
-            } else if (!document.getElementById('view-favorites').classList.contains('hidden')) {
+            } else if (document.getElementById('view-favorites') && !document.getElementById('view-favorites').classList.contains('hidden')) {
                 renderFavorites();
             }
-        }
+        };
 
         // 全局公开：点击显示意思的函数（Maksud专用高灵敏按钮使用）
         window.revealMeaning = function() {
@@ -926,7 +1088,7 @@
             if(meaningContainer && item) {
                 let meaningText = item.meaning || 'Tiada Maksud';
                 meaningContainer.innerHTML = `
-                    <div class="w-full text-left bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 shadow-sm fade-in mt-4">
+                    <div class="w-full text-left bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 shadow-sm fade-in mt-2">
                         <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400 mb-2 flex items-center gap-1.5">
                             <i class="ph-fill ph-translate text-lg"></i> 释义 Maksud
                         </span>
@@ -1011,27 +1173,13 @@
         function updateStudyModalContent(onlyRedraw = false) {
             let item = currentStudyList[currentIndex];
             
-            // 兼容性字典数据修复
-            if (!item.meaning || !item.sentence) {
-                let foundItem = null;
-                for (let key in grade3Data) {
-                    let match = grade3Data[key].find(w => w.word === item.word);
-                    if (match) {
-                        foundItem = match;
-                        break;
-                    }
-                }
-                if (foundItem) {
-                    item.meaning = foundItem.meaning;
-                    item.sentence = foundItem.sentence;
-                }
-            }
+            if (!item) return;
 
             if (!onlyRedraw) {
                 // 每次翻页，重置记忆挑战的“揭开”状态
                 meaningRevealed = false;
                 
-                // 渲染大字和例句
+                // 渲染顶部导航及基本信息
                 document.getElementById('studySentence').textContent = item.sentence ? item.sentence : '暂无例句';
                 document.getElementById('studyModalProgress').textContent = `${currentIndex + 1} / ${currentStudyList.length}`;
                 
@@ -1056,7 +1204,7 @@
             }
 
             // ===============================================
-            // 渲染：精确配对汉字与拼音、部首 (垂直排布)
+            // 渲染：精确配对汉字与拼音、部首 (垂直紧凑排布)
             // ===============================================
             const chars = item.word.split('').filter(char => /[\u4e00-\u9fa5]/.test(char));
             const pinyins = item.pinyin.split(' ');
@@ -1539,19 +1687,6 @@
                 speak(currentStudyList[currentIndex].word);
             }
         }
-
-        // 听写按键监听 (回车/空格控制下一个和重复)
-        window.addEventListener('keydown', function(e) {
-            const dictationActive = document.getElementById('view-dictation-active');
-            if (dictationActive && !dictationActive.classList.contains('hidden')) {
-                if (e.code === 'Enter') {
-                    nextDictationWord();
-                } else if (e.code === 'Space') {
-                    e.preventDefault();
-                    playCurrentDictationWord();
-                }
-            }
-        });
 
         function nextDictationWord() {
             if(currentIndex < currentStudyList.length - 1) {
