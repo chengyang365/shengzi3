@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>新廊华小 - 三年级华文生字智能学习系统</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/chengyang365/ClassMovementLog/refs/heads/main/logo.png">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -156,14 +157,45 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white dark:bg-darkCard p-5 md:p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
                     <div class="flex flex-col">
                         <h2 id="currentChapterTitle" class="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-100 mb-1">加载中...</h2>
-                        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">共计 <span id="chapterWordCount" class="font-black text-primary mx-1">0</span> 个生字词</span>
+                        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">共计 <span id="chapterWordCount" class="font-black text-primary mx-1">0</span> 个生字词 (勾选卡片可选择性打印)</span>
                     </div>
-                    <div class="flex gap-3 w-full sm:w-auto mt-2 sm:mt-0">
-                        <button onclick="printCurrentChapterCopybook()" class="flex-1 sm:flex-auto bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-5 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-2">
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                        <button onclick="toggleSelectAll()" class="flex-1 sm:flex-auto bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-sm">
+                            <i class="ph-bold ph-checks text-lg"></i> 全选/全不选
+                        </button>
+                        <button onclick="printCurrentChapterCopybook()" class="flex-1 sm:flex-auto bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-5 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm">
                             <i class="ph-fill ph-printer text-xl"></i> 打印字帖
                         </button>
-                        <button onclick="startChapterStudy()" class="flex-1 sm:flex-auto bg-primary hover:bg-primaryHover text-white px-5 py-2.5 rounded-xl font-bold shadow-md hover:shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2">
+                        <button onclick="startChapterStudy()" class="flex-1 sm:flex-auto bg-primary hover:bg-primaryHover text-white px-5 py-2.5 rounded-xl font-bold shadow-md hover:shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2 text-sm">
                             <i class="ph-fill ph-play-circle text-xl"></i> 开始学习
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 生字卡片网格 -->
+                <div id="wordListContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+                    <!-- 词语列表由 JS 生成 -->
+                </div>
+            </div>
+
+            <!-- 视图 2：生字本 -->
+            <div id="view-favorites" class="hidden fade-in">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white dark:bg-darkCard p-5 md:p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                    <div class="flex flex-col">
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-2">
+                            <i class="ph-fill ph-star text-yellow-500"></i> 我的生字本
+                        </h2>
+                        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">已收藏的易错/重点字 (勾选卡片可选择性打印)</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto mt-2 sm:mt-0" id="favoritesHeaderActions">
+                        <button onclick="toggleSelectAll()" class="flex-1 sm:flex-auto bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5 text-sm">
+                            <i class="ph-bold ph-checks text-lg"></i> 全选/全不选
+                        </button>
+                        <button id="btnPrintFavorites" onclick="printFavoritesCopybook()" class="flex-1 sm:flex-auto bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-5 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-2 hidden text-sm">
+                            <i class="ph-fill ph-printer text-xl"></i> 打印字帖
+                        </button>
+                        <button onclick="startFavoritesStudy()" class="flex-1 sm:flex-auto bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-md hover:shadow-lg shadow-yellow-500/20 transition flex items-center justify-center gap-2 text-sm">
+                            <i class="ph-fill ph-play-circle text-xl"></i> 复戏生字本
                         </button>
                     </div>
                 </div>
@@ -407,12 +439,18 @@
                     <label class="block font-bold mb-2 text-slate-700 dark:text-slate-200">网格样式</label>
                     <div class="relative">
                         <select id="printGridType" class="w-full p-3 border-2 border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10 appearance-none font-medium cursor-pointer">
-                            <option value="tianzi">田字格 (Tianzi)</option>
-                            <option value="mizi" selected>米字格 (Mizi)</option>
+                            <option value="tianzi" selected>田字格 (Tianzi)</option>
+                            <option value="mizi">米字格 (Mizi)</option>
                             <option value="blank">空白方格 (Blank)</option>
                         </select>
                         <i class="ph-bold ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
+                </div>
+                
+                <div>
+                    <label class="block font-bold mb-2 text-slate-700 dark:text-slate-200">生字练习行数 (行)</label>
+                    <input type="number" id="printRowsCount" value="5" min="1" max="10" class="w-full p-3 border-2 border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10 transition-all font-medium">
+                    <span class="text-xs text-slate-400 mt-1.5 block">推荐 1 ~ 5 行以达到最美观的 A4 纸排版体验。</span>
                 </div>
                 
                 <div>
@@ -877,6 +915,7 @@
         let visitedChapters = JSON.parse(localStorage.getItem('vocab_visited_chapters')) || [];
         let speechRate = parseFloat(localStorage.getItem('vocab_speech_rate')) || 1.0;
         let dictationInterval = parseInt(localStorage.getItem('vocab_dictation_interval')) || 5;
+        let currentWordList = []; // 全局打印字词队列，对接高级排版打印引擎
 
         // 记忆挑战 (Flashcard) 模式变量：仅控制外部列表视图的拼音显示
         let hidePinyinChallenge = false;
@@ -1015,6 +1054,7 @@
 
             const words = currentData[chapterName];
             currentStudyList = words;
+            currentWordList = words; // 追踪当前生字列表用于打印
             document.getElementById('chapterWordCount').textContent = words.length;
 
             const container = document.getElementById('wordListContainer');
@@ -1030,6 +1070,10 @@
                 const showPinyinText = hidePinyinChallenge ? '***' : item.pinyin;
 
                 btnCard.innerHTML = `
+                    <!-- 勾选打印的多选框 -->
+                    <div class="absolute top-3 left-3 z-10 flex items-center" onclick="event.stopPropagation();">
+                        <input type="checkbox" class="print-checkbox w-5 h-5 rounded-md border-slate-300 dark:border-slate-600 text-primary focus:ring-primary accent-primary cursor-pointer shadow-sm transition-all" data-index="${index}">
+                    </div>
                     <div class="absolute top-3 right-3 text-xl transition-all duration-300 ${isFav ? 'text-yellow-500 opacity-100 scale-110' : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 hover:text-yellow-400'}">
                         <i class="ph-fill ph-star"></i>
                     </div>
@@ -1370,11 +1414,12 @@
         }
 
         // ==========================================
-        // 6. 田字格/米字格 高级自适应字帖生成器
+        // 7. PRINT SETTINGS & GENERATOR (高级排版)
         // ==========================================
         function printCurrentChapterCopybook() {
             const title = document.getElementById('currentChapterTitle').textContent;
             currentPrintJob = { title: title, list: currentStudyList };
+            currentWordList = currentStudyList; // 同步当前生字表
             document.getElementById('printTitle').value = title;
             openModal('printOptionsModal');
         }
@@ -1385,43 +1430,98 @@
                 return;
             }
             currentPrintJob = { title: "我的生字本", list: favorites };
+            currentWordList = favorites; // 同步生字本数据
             document.getElementById('printTitle').value = "我的生字本";
             openModal('printOptionsModal');
         }
 
+        function openPrintModal() {
+            // 自动将默认标题设置为当前的章节名称
+            document.getElementById('printTitle').value = document.getElementById('currentChapterTitle').textContent;
+            openModal('printOptionsModal');
+        }
+
+        // 全选 / 全不选联动逻辑
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('.print-checkbox');
+            if (checkboxes.length === 0) return;
+            
+            // 检查是否至少有一个未勾选，如果是则全部全选；否则全部取消勾选
+            let allChecked = true;
+            checkboxes.forEach(cb => {
+                if (!cb.checked) allChecked = false;
+            });
+            
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+            });
+        }
+
         function executePrintSheet() {
-            const customTitle = document.getElementById('printTitle').value || currentPrintJob.title;
-            const gridType = document.getElementById('printGridType').value; 
-            const rowsCount = parseInt(document.getElementById('printRowsCount').value) || 1;
+            if(currentWordList.length === 0) return;
+            
+            const customTitle = document.getElementById('printTitle').value || document.getElementById('currentChapterTitle').textContent;
+            const gridType = document.getElementById('printGridType').value;
+            const rowsCount = parseInt(document.getElementById('printRowsCount').value) || 5;
+            
             const showHeader = document.getElementById('printShowHeader').checked;
             const showPinyin = document.getElementById('printShowPinyin').checked;
             const showMeaning = document.getElementById('printShowMeaning').checked;
             const traceFirstRow = document.getElementById('printTraceFirstRow').checked;
-
-            const wordsToPrint = currentPrintJob.list;
-            if (!wordsToPrint || wordsToPrint.length === 0) {
-                alert("没有可打印的生字！");
-                return;
+            
+            let wordsToPrint = [];
+            const checkboxes = document.querySelectorAll('.print-checkbox');
+            let anyChecked = false;
+            
+            checkboxes.forEach((cb) => {
+                if (cb.checked) {
+                    anyChecked = true;
+                    const idx = parseInt(cb.getAttribute('data-index'));
+                    if (currentWordList[idx]) {
+                        wordsToPrint.push(currentWordList[idx]);
+                    }
+                }
+            });
+            
+            // 如果用户没有任何勾选，则默认导出当前页面的全部字词
+            if (!anyChecked) {
+                wordsToPrint = currentWordList;
             }
 
+            let printWindow = window.open('', '_blank');
+            
+            // Grid CSS Generation
             let gridCSS = '';
-            if (gridType === 'tianzi') {
-                gridCSS = `.grid-box { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><line x1="0" y1="50" x2="100" y2="50" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/><line x1="50" y1="0" x2="50" y2="100" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/></svg>'); background-size: 100% 100%; }`;
+            if(gridType === 'tianzi') {
+                gridCSS = `
+                    .grid-box::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; border-top: 1px dashed #999; z-index: -1; }
+                    .grid-box::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px dashed #999; z-index: -1; }
+                `;
             } else if (gridType === 'mizi') {
-                gridCSS = `.grid-box { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><line x1="0" y1="50" x2="100" y2="50" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/><line x1="50" y1="0" x2="50" y2="100" stroke="%23fca5a5" stroke-width="1" stroke-dasharray="3,3"/><line x1="0" y1="0" x2="100" y2="100" stroke="%23fee2e2" stroke-width="0.5" stroke-dasharray="3,3"/><line x1="100" y1="0" x2="0" y2="100" stroke="%23fee2e2" stroke-width="0.5" stroke-dasharray="3,3"/></svg>'); background-size: 100% 100%; }`;
+                gridCSS = `
+                    .grid-box::before { 
+                        content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1;
+                        background-image: 
+                            linear-gradient(to right, transparent 49.5%, #999 49.5%, #999 50.5%, transparent 50.5%),
+                            linear-gradient(to bottom, transparent 49.5%, #999 49.5%, #999 50.5%, transparent 50.5%),
+                            linear-gradient(45deg, transparent 49.5%, #999 49.5%, #999 50.5%, transparent 50.5%),
+                            linear-gradient(-45deg, transparent 49.5%, #999 49.5%, #999 50.5%, transparent 50.5%);
+                    }
+                `;
             }
 
+            // 高级排版：学生信息栏
             let headerHTML = '';
             if (showHeader) {
                 headerHTML = `
                     <div class="student-info">
-                        <span>姓名: ____________________</span>
-                        <span>班级: ____________________</span>
-                        <span>日期: _____年____月____日</span>
+                        <div><strong>姓名：</strong>___________________</div>
+                        <div><strong>班级：</strong>___________________</div>
+                        <div><strong>日期：</strong>___________________</div>
                     </div>
                 `;
             }
-
+            
             let htmlContent = `
                 <!DOCTYPE html>
                 <html lang="zh-CN">
@@ -1436,24 +1536,22 @@
                         
                         .student-info { display: flex; justify-content: space-between; margin-bottom: 25px; padding-bottom: 10px; border-bottom: 2px solid #333; font-family: sans-serif; font-size: 15px; color: #444; }
                         .page-container { display: flex; flex-wrap: wrap; gap: 30px 25px; justify-content: flex-start; }
-                        .word-block { display: flex; flex-direction: column; align-items: flex-start; page-break-inside: avoid; width: 100%; }
+                        .word-block { display: flex; flex-direction: column; align-items: flex-start; page-break-inside: avoid; }
                         .header-row { display: flex; flex-direction: row; margin-bottom: 5px; }
                         .practice-row { display: flex; flex-direction: row; margin-bottom: 4px; }
                         .char-col { display: flex; flex-direction: column; align-items: center; }
                         
                         .pinyin-text { font-family: sans-serif; font-size: 14px; color: #555; margin-top: 4px; line-height: 1; text-align: center; min-height: 14px; }
-                        .meaning-text { font-family: sans-serif; font-size: 12px; color: #666; margin-top: 8px; text-align: left; max-width: 100%; border-top: 1px dashed #eee; padding-top: 6px; word-wrap: break-word; line-height: 1.4;}
+                        .meaning-text { font-family: sans-serif; font-size: 12px; color: #666; margin-top: 8px; text-align: center; max-width: 100%; border-top: 1px solid #eee; padding-top: 4px;}
                         
                         .grid-box { width: 50px; height: 50px; border: 1.5px solid #000; position: relative; display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: normal; box-sizing: border-box; }
                         ${gridCSS}
                         .empty { color: transparent; }
                         .trace { color: rgba(0,0,0,0.15); }
-                        
-                        .footer-branding { text-align: center; margin-top: 40px; font-family: sans-serif; font-size: 10px; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
                     </style>
                 </head>
                 <body>
-                    <h1>新廊华小 · ${customTitle}</h1>
+                    <h1>${customTitle}</h1>
                     ${headerHTML}
                     <div class="page-container">
             `;
@@ -1467,41 +1565,41 @@
                 
                 // --- Row 1: Word + Pinyin ---
                 htmlContent += `<div class="header-row">`;
+                chars.forEach((c, idx) => {
+                    const py = showPinyin ? (pinyins[idx] || '') : ''; 
+                    const leftBorder = idx === 0 ? '' : 'border-left: none;';
+                    htmlContent += `
+                        <div class="char-col">
+                            <div class="grid-box" style="${leftBorder}">${c}</div>
+                            <div class="pinyin-text">${py}</div>
+                        </div>
+                    `;
+                });
+                htmlContent += `</div>`;
                 
-                htmlContent += `
-                    <div style="width: 70px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; margin-right: 12px; padding: 4px;">
-                        <span style="font-size: 9px; color: #94a3b8; font-family: sans-serif; font-weight: bold;">释义 Maksud</span>
-                        <span style="font-size: 11px; color: #059669; text-align: center; font-family: sans-serif; font-weight: bold; margin-top: 4px; display: ${showMeaning ? 'block' : 'none'};">${item.meaning || 'N/A'}</span>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                `;
-
+                // --- Practice Rows ---
                 for (let r = 0; r < rowsCount; r++) {
                     htmlContent += `<div class="practice-row">`;
-                    for (let i = 0; i < 10; i++) {
-                        const charIdx = i % chars.length;
-                        const isTracing = (r === 0 && traceFirstRow) && (i < (chars.length * (chars.length === 1 ? 2 : 1)));
-                        const showText = isTracing ? chars[charIdx] : '';
-                        const displayPinyin = (r === 0 && showPinyin && i < chars.length) ? (pinyins[charIdx] || '') : '';
-                        const leftBorder = i === 0 ? '' : 'border-left: none;';
-                        
-                        htmlContent += `
-                            <div class="char-col">
-                                <span style="font-size: 11px; height: 16px; font-weight: bold; color: rgba(220,38,38,0.8); visibility: ${(r === 0 && showPinyin && displayPinyin) ? 'visible' : 'hidden'};">${displayPinyin}</span>
-                                <div class="grid-box ${isTracing ? 'trace' : 'empty'}" style="${leftBorder}">${showText}</div>
-                            </div>
-                        `;
-                    }
+                    chars.forEach((c, idx) => {
+                        const leftBorder = idx === 0 ? '' : 'border-left: none;';
+                        if (r === 0 && traceFirstRow) {
+                            htmlContent += `<div class="grid-box trace" style="${leftBorder}">${c}</div>`;
+                        } else {
+                            htmlContent += `<div class="grid-box empty" style="${leftBorder}"></div>`;
+                        }
+                    });
                     htmlContent += `</div>`;
                 }
 
-                htmlContent += `</div></div></div>`;
+                // --- Meaning ---
+                if (showMeaning && item.meaning) {
+                    htmlContent += `<div class="meaning-text" style="width: ${chars.length * 50}px;">${item.meaning}</div>`;
+                }
+                
+                htmlContent += `</div>`; 
             });
 
             htmlContent += `
-                    </div>
-                    <div class="footer-branding">
-                        新廊华小 SJK(C) Ladang Grisek · 三年级华文智能学习系统一键生成
                     </div>
                     <script>
                         window.onload = function() { setTimeout(function() { window.print(); }, 800); };
@@ -1510,20 +1608,13 @@
                 </html>
             `;
 
-            const printWin = window.open('', '_blank');
-            if (!printWin) {
-                alert("打印窗口被浏览器拦截，请允许本站弹出窗口！");
-                return;
-            }
-            printWin.document.open();
-            printWin.document.write(htmlContent);
-            printWin.document.close();
-            
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
             closeModal('printOptionsModal');
         }
 
         // ==========================================
-        // 7. 语音合成 (Text-to-Speech)
+        // 8. 语音合成 (Text-to-Speech)
         // ==========================================
         function playCurrentWordAudio() {
             if(!currentStudyList[currentIndex]) return;
@@ -1586,6 +1677,7 @@
             } else {
                 emptyMsg.classList.add('hidden');
                 currentStudyList = favorites;
+                currentWordList = favorites; // 同步当前列表至打印队列
 
                 favorites.forEach((item, index) => {
                     const btn = document.createElement('div');
@@ -1596,6 +1688,10 @@
                     const showPinyinText = hidePinyinChallenge ? '***' : item.pinyin;
 
                     btn.innerHTML = `
+                        <!-- 勾选打印的多选框 -->
+                        <div class="absolute top-3 left-3 z-10 flex items-center" onclick="event.stopPropagation();">
+                            <input type="checkbox" class="print-checkbox w-5 h-5 rounded-md border-slate-300 dark:border-slate-600 text-yellow-500 focus:ring-yellow-400 accent-yellow-500 cursor-pointer shadow-sm transition-all" data-index="${index}">
+                        </div>
                         <div class="absolute top-3 right-3 text-xl text-yellow-500 scale-110 group-hover:scale-125 transition-transform">
                             <i class="ph-fill ph-star"></i>
                         </div>
